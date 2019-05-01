@@ -3,6 +3,7 @@ public class MAP {
 
 	private int Widt;
 	private int Hegt;
+	public MATERIAL mat;
 	private MATERIAL[][] Track;
 	public MATERIAL[][] TrackDraw;
 	
@@ -10,40 +11,8 @@ public class MAP {
 		Widt = width;
 		Hegt = height;
 		TrackDraw = new MATERIAL[Widt][Hegt];
-		for (int i=0;i<Widt;i++) {
-			for (int j=0;j<Hegt;j++) {
-				int kpx1 = 300;
-				int kpy1 = 400;
-				int kpx2 = 900;
-				int kpy2 = 400;
-				
-				if (Math.sqrt((i-kpx1)*(i-kpx1)+(j-kpy1)*(j-kpy1)) > 100 && Math.sqrt((i-kpx1)*(i-kpx1)+(j-kpy1)*(j-kpy1)) < 200 && i < kpx1){
-					MATERIAL mat2 = new MATERIAL("TARMAC");
-					TrackDraw[i][j] = mat2;
-				}
-				else if (Math.sqrt((i-kpx2)*(i-kpx2)+(j-kpy2)*(j-kpy2)) > 100 && Math.sqrt((i-kpx2)*(i-kpx2)+(j-kpy2)*(j-kpy2)) < 200 && i > kpx2){
-					MATERIAL mat2 = new MATERIAL("TARMAC");
-					TrackDraw[i][j] = mat2;
-				}
-				else if (Math.abs(j-kpy1) >= 100 && Math.abs(j-kpy1) <= 200  && i >= kpx1 && i <= kpx2){
-					MATERIAL mat2 = new MATERIAL("TARMAC");
-					TrackDraw[i][j] = mat2;
-				}
-				else if (Math.sqrt((i-kpx2)*(i-kpx2)+(j-kpy2)*(j-kpy2)) > 100 && Math.sqrt((i-kpx2)*(i-kpx2)+(j-kpy2)*(j-kpy2)) < 200 && i >= kpx2){
-					MATERIAL mat2 = new MATERIAL("TARMAC");
-					TrackDraw[i][j] = mat2;
-				}
-				else if (Math.sqrt((i-50)*(i-50)+(j-50)*(j-50)) < 20){
-					MATERIAL mat2 = new MATERIAL("TARMAC");
-					TrackDraw[i][j] = mat2;
-				}
-				else {
-				TrackDraw[i][j] = new MATERIAL(mat);
-				}
-			}
-		}
-		Blur();
-		
+		Track = new MATERIAL[Widt][Hegt];
+		this.mat = mat;
 	}
 	
 	public void Blur() {

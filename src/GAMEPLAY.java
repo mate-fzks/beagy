@@ -7,7 +7,7 @@ import java.awt.event.KeyListener;
 public class GAMEPLAY extends JPanel{
 
 	private GUI gui;
-	private MAP map;
+	public MAP map;
 	private boolean gameMode;
 	private VEHICLE v1;
 	private VEHICLE v2;
@@ -15,24 +15,11 @@ public class GAMEPLAY extends JPanel{
 	public int steer;
 	public int drive;
 	
-	public void GAMEPLAY() {
-		KeyListener listener = new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				System.out.println("keyPressed="+KeyEvent.getKeyText(e.getKeyCode()));
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				System.out.println("keyReleased="+KeyEvent.getKeyText(e.getKeyCode()));
-			}
-		};
-		addKeyListener(listener);
-		setFocusable(true);
+	
+	public GAMEPLAY(MAP map,boolean multi_player) {
+		this.map = map;
+		this.gameMode = multi_player;
+		
 	}
 	
 	public void StartGameplay() {
@@ -40,11 +27,9 @@ public class GAMEPLAY extends JPanel{
 		//int steer;
 		v1 = new VEHICLE(200,400,Math.PI/2);
 		
-		MATERIAL mat = new MATERIAL("GRASS");
-    	this.map = new MAP(1200, 700, mat);
 		
 	    JFrame frame= new JFrame("Gran Turismo Forza X");
-	    GAMEPLAY game = new GAMEPLAY();
+	    GAMEPLAY game = new GAMEPLAY(map, false);
 	    
 	    game.map = map;
 	    game.v1 = v1;
@@ -60,7 +45,7 @@ public class GAMEPLAY extends JPanel{
 	    		
 	    drive = 250;
 	    steer = -1;
-	   /* while (true)
+	    while (true)
 	      {
 	    	v1.CalcNewPos(10, map, drive, steer);
 
@@ -69,7 +54,7 @@ public class GAMEPLAY extends JPanel{
 	             Thread.sleep(10);
 	        } catch (Exception exc){}
 	        
-	      } */
+	      } 
 	}
 	
 	
