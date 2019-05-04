@@ -13,6 +13,12 @@ public class MAP {
 		TrackDraw = new MATERIAL[Widt][Hegt];
 		Track = new MATERIAL[Widt][Hegt];
 		this.mat = mat;
+		for(int i=0; i<Widt ; i++)
+		{
+			for(int j=0; j< Hegt; j++) {
+				TrackDraw[i][j]=mat;
+			}
+		}
 	}
 	
 	public void Blur() {
