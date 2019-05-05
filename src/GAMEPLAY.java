@@ -12,6 +12,7 @@ public class GAMEPLAY extends JPanel{
 	private VEHICLE v1;
 	private VEHICLE v2;
 	
+	private boolean running;
 	public int steer;
 	public int drive;
 	
@@ -45,13 +46,18 @@ public class GAMEPLAY extends JPanel{
 	    		
 	    drive = 250;
 	    steer = -1;
+	    
+	    running = true;
+	    int sleep = 1;
 	    while (true)
-	      {
-	    	v1.CalcNewPos(10, map, drive, steer);
-
+	      { 
+	    	v1.CalcNewPos(sleep, map, drive, steer);
+	    	if (gameMode) {
+	    		v2.CalcNewPos(sleep, map, drive, steer);
+	    	}
 	        game.repaint();
 	        try{
-	             Thread.sleep(10);
+	             Thread.sleep(sleep);
 	        } catch (Exception exc){}
 	        
 	      } 
@@ -62,18 +68,54 @@ public class GAMEPLAY extends JPanel{
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		//pálya kirajzolása
-		int x0 = 0;
-		int x1 = 0;
+		
+		//autó sarkai
+		Image car = Toolkit.getDefaultToolkit().getImage("kocsi.png");
+		double CarWidth = (car.getHeight(this)*Math.cos(v1.Ori)+car.getWidth(this)*Math.sin(v1.Ori));
+		double CarHeight = (car.getHeight(this)*Math.sin(v1.Ori)-car.getWidth(this)*Math.cos(v1.Ori));
+		int CornerX = (int)(v1.PosX-CarWidth/2);
+		int CornerY = (int)(v1.PosY-CarHeight/2);
+		
 		
 
-		for (int y=0;y<map.GetHeight();y++) {
-			while (x0 < map.GetWidth()) {
+		//pálya rajzolása
+		if (running) {
+			DrawMap(g2d,CornerX,CornerY,(int)CarHeight,(int)CarWidth);
+		}
+		else {
+			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
+		}
+		
+		//ha multi
+		if (gameMode) {
+			double CarWidth2 = (car.getHeight(this)*Math.cos(v2.Ori)+car.getWidth(this)*Math.sin(v2.Ori));
+			double CarHeight2 = (car.getHeight(this)*Math.sin(v2.Ori)-car.getWidth(this)*Math.cos(v2.Ori));
+			int CornerX2 = (int)(v2.PosX-CarWidth/2);
+			int CornerY2 = (int)(v2.PosY-CarHeight/2);
+			DrawMap(g2d,CornerX2,CornerY2,(int)CarHeight2,(int)CarWidth2);
+			g2d.rotate(v2.Ori-Math.PI/2, CornerX2, CornerY2);
+		    g2d.drawImage(car, CornerX2, CornerY2, this);
+		}
+		
+	    
+		//autó kirajzolása		
+	    g2d.rotate(v1.Ori-Math.PI/2, CornerX, CornerY);
+	    g2d.drawImage(car, CornerX, CornerY, this);
+	    
+
+	}
+	
+    
+	public void DrawMap(Graphics2D g2d, int startX, int startY, int height, int width) {
+		int x0 = startX-1;
+		int x1 = x0;
+		for (int y=startY-1;y<height;y++) {
+			while (x0 < width) {
 				int[] color = this.map.TrackDraw[x0][y].getCol();
 				g2d.setColor(new Color(color[0], color[1], color[2]));
 				
-				if (x1+1 < map.GetWidth()) {
-					while (this.map.TrackDraw[x1+1][y] == this.map.TrackDraw[x0][y] && x1+2 < map.GetWidth()) {
+				if (x1+1 < height) {
+					while (this.map.TrackDraw[x1+1][y] == this.map.TrackDraw[x0][y] && x1+2 < width) {
 						x1++;
 					}
 				}
@@ -82,33 +124,9 @@ public class GAMEPLAY extends JPanel{
 				x1++;
 				x0 = x1;
 			}
-			x0 = 0;
-			x1 = 0;
+			x0 = startX-1;
+			x1 = x0;
 		}
-		
-		g2d.setColor(new Color(50, 50, 50));
-		g2d.fillOval(80, 30, 40, 40);
-		g2d.drawLine(100,100,200,200);
-		
-		//súlypont helyét jelölõ vonalak
-		g2d.setColor(new Color(0, 0, 0));
-	    g2d.drawLine((int)v1.PosX, 0, (int)v1.PosX, 700);
-	    g2d.drawLine(0, (int)v1.PosY, 1200, (int)v1.PosY);
-	    
-	    
-		//autó kirajzolása
-		Image car = Toolkit.getDefaultToolkit().getImage("kocsi.png");
-		int CornerX = (int)(v1.PosX-car.getHeight(this)*Math.cos(v1.Ori)/2-car.getWidth(this)*Math.sin(v1.Ori)/2);
-		int CornerY = (int)(v1.PosY-car.getHeight(this)*Math.sin(v1.Ori)/2+car.getWidth(this)*Math.cos(v1.Ori)/2);
-	    g2d.rotate(v1.Ori-Math.PI/2, CornerX, CornerY);
-	    g2d.drawImage(car, CornerX, CornerY, this);
-	    
-
-	}
-	
-    
-	public void ReadKey() {
-		
 	}
 	
 	public void StartServer() {
