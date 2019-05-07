@@ -19,6 +19,7 @@ public class GAMEPLAY extends JPanel{
 	public boolean running;
 	public int steer;
 	public int drive;
+	private BufferedImage car;
 	
 	
 	public GAMEPLAY(MAP map,boolean multi_player, GUI gui) {
@@ -28,24 +29,17 @@ public class GAMEPLAY extends JPanel{
 		
 	}
 	
-	public void refresh(int sleep) {
+	public void refresh(double tau) {
 
-	    v1.CalcNewPos(sleep, map, drive, steer);
+	    v1.CalcNewPos(tau, map, drive, steer);
     	if (gameMode) {
-    		v2.CalcNewPos(sleep, map, drive, steer);
+    		v2.CalcNewPos(tau, map, drive, steer);
     	}
 	}
 	
 	public void init() {
 		v1 = new VEHICLE(100,400,3*Math.PI/2);
 		running = false;
-	}
-	
-	public void paint(Graphics2D g2d) {
-		
-		
-		//autó sarkai
-		BufferedImage car = null;
 		try
 	    {
 			car = ImageIO.read(new File("kocsi.png"));
@@ -53,6 +47,11 @@ public class GAMEPLAY extends JPanel{
 	    catch (IOException e)
 	    {
 	    }
+	}
+	
+	public void paint(Graphics2D g2d) {
+		
+		//autó sarkai
 		double CarWidth = (Math.abs(car.getHeight()*Math.cos(v1.Ori))+Math.abs(car.getWidth()*Math.sin(v1.Ori)));
 		double CarHeight = (Math.abs(car.getHeight()*Math.sin(v1.Ori))+Math.abs(car.getWidth()*Math.cos(v1.Ori)));
 		int CornerX = (int)(v1.PosX-(car.getHeight()*Math.cos(v1.Ori)+car.getWidth()*Math.sin(v1.Ori))/2);
@@ -65,12 +64,13 @@ public class GAMEPLAY extends JPanel{
 
 		//pálya rajzolása
 		if (running) {
-			DrawMap(g2d,LeftCornerX-3,LeftCornerY-3,(int)CarHeight+7,(int)CarWidth+7);
+			DrawMap(g2d,LeftCornerX-6,LeftCornerY-6,(int)CarHeight+14,(int)CarWidth+14);
 		}
 		else {
 			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
 			running = true;
 		}
+		DrawMap(g2d,0,0,40,150);
 		
 		//ha multi
 		if (gameMode) {
@@ -83,7 +83,7 @@ public class GAMEPLAY extends JPanel{
 			int LeftCornerX2 = (int)(v1.PosX-CarWidth2/2-v1.Vel*Math.cos(Ori2)*v1.dt);
 			int LeftCornerY2 = (int)(v1.PosY-CarHeight2/2-v1.Vel*Math.sin(Ori2)*v1.dt);
 
-			DrawMap(g2d,CornerX2-3,CornerY2-3,(int)CarHeight2+7,(int)CarWidth2+7);
+			DrawMap(g2d,CornerX2-6,CornerY2-6,(int)CarHeight2+14,(int)CarWidth2+14);
 			g2d.rotate(v2.Ori-Math.PI/2, CornerX2, CornerY2);
 		    g2d.drawImage(car, CornerX2, CornerY2, this);
 		}

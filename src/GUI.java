@@ -1,12 +1,15 @@
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 
 
 public class GUI extends JPanel implements WindowListener{
 
 	private GAMEPLAY game;
 	private PLANNER plan;
+	private long tellmil;
+	private int tellsec, tellmin;
 	boolean single;
 
 	public GUI() {
@@ -45,26 +48,44 @@ public class GUI extends JPanel implements WindowListener{
 		 frame.setResizable(false);
 
 	     
-	     int sleep = 10;
+	     long t0, t1, t2;
+	     double tau;
+	     t0 = System.currentTimeMillis();
+	     t1 = System.nanoTime();
 	     while (true)
 	     { 
-	    	 	calculate(sleep);
+	    	 	do {
+	    	 		t2 = System.nanoTime();
+		    	 	tau = (double)(t2-t1)/1000000;
+	    	 	} while(tau < 10);
+	    	 	//eltelt idõ számítása
+	    	 	tellmil = System.currentTimeMillis()-t0;
+	    	 	tellmin = (int)tellmil/1000/60;
+	    	 	tellmil = tellmil % (1000*60);
+	    	 	tellsec = (int)tellmil/1000;
+	    	 	tellmil = tellmil % (1000);
+	    	 	
+	    	 	calculate(tau);
 	 	     	repaint();
-	 	        try{
-	 	             Thread.sleep(sleep);
-	 	        } catch (Exception exc){}
-				//game.running = true;
+	 	 	    t1 = System.nanoTime();
 	      } 
 
 	}
 	
-	public void calculate(int sleep) {
-		game.refresh(sleep);
+	public void calculate(double tau) {
+		game.refresh(tau);
 	}
 	
 	public void paint(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
-		game.paint(g2d);	
+		Graphics2D g2d = (Graphics2D)g;
+		g2d.setFont(new Font("TimesRoman", Font.PLAIN, 36)); 
+		AffineTransform oldXForm = g2d.getTransform();
+		game.paint(g2d);
+		
+		g2d.setTransform(oldXForm); // Restore transform
+		g2d.setColor(new Color(0, 0, 0));
+		String time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
+		g2d.drawString(time, 10, 30);
 	}
 	public void windowActivated(WindowEvent arg0) {}  
 	public void windowClosed(WindowEvent arg0) {}  
