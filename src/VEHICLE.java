@@ -21,6 +21,7 @@ public class VEHICLE extends GRID {
 		int GridX;
 		int GridY;
 		double DriveForce = 500*drive; //max sebesség állítása
+		if (Vel < 0) DriveForce = DriveForce/3; 
 		int mass = 2; //gyorsulás állítására
 		if (PosX <= 0) {
 			GridX = 0;

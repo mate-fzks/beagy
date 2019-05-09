@@ -11,7 +11,7 @@ public class GUI extends JPanel implements WindowListener{
 	private boolean playing;
 	private volatile boolean single;
 	private long tellmil;
-	private int tellsec, tellmin;
+	private int tellsec, tellmin, ready;
 	
 	private JFrame menu, gamewindow;
 
@@ -54,6 +54,7 @@ public class GUI extends JPanel implements WindowListener{
 	
 	public void SetUpGUI(GUI gui) {
 		playing = false;
+		ready = 0;
 		
 		menu = new JFrame("Gran Turismo Forza X");
 	    menu.add(gui);
@@ -131,6 +132,30 @@ public class GUI extends JPanel implements WindowListener{
 	public void GameCycle() {
 		long t0, t1, t2;
 		double tau;
+		
+		repaint();
+		ready = 5;
+		repaint();
+		try {Thread.sleep(2000);} catch(Exception e) {}
+		ready = 4;
+		repaint();
+		try {Thread.sleep(1000);} catch(Exception e) {}
+		ready = 3;
+		repaint();
+		try {Thread.sleep(1000);} catch(Exception e) {}
+		ready = 2;
+		repaint();
+		try {Thread.sleep(1000);} catch(Exception e) {}
+		ready = 1;
+		repaint();
+		try {Thread.sleep(1000);} catch(Exception e) {}
+		ready = 0;
+		repaint();
+			
+		
+		
+		playing = true;
+	
 	    t0 = System.currentTimeMillis();
 	    t1 = System.nanoTime();
 	    while (true) {		
@@ -150,21 +175,66 @@ public class GUI extends JPanel implements WindowListener{
 	    }
 	} 
 	
+	
 	public void calculate(double tau) {
 		game.refresh(tau);
 	}
 	
 	public void paint(Graphics g) {
-		if (playing) {
 		Graphics2D g2d = (Graphics2D)g;
-		g2d.setFont(new Font("TimesRoman", Font.PLAIN, 36)); 
-		AffineTransform oldXForm = g2d.getTransform();
-		game.paint(g2d);
+		g2d.setFont(new Font("TimesRoman", Font.PLAIN, 36));
 		
-		g2d.setTransform(oldXForm); // Restore transform
-		g2d.setColor(new Color(0, 0, 0));
-		String time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
-		g2d.drawString(time, 10, 30);
+		int d = 40;
+		switch (ready) {
+		case 5:	
+			AffineTransform oldXForm1 = g2d.getTransform();
+			game.paint(g2d);
+			g2d.setTransform(oldXForm1);
+			g2d.setColor(new Color(0, 0, 0));
+			g2d.fillRect(gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 4*d-10, 2*d-10);
+			break;
+			
+		case 4:
+			g2d.setColor(new Color(255, 0, 0));
+			g2d.fillOval((int)(gamewindow.getWidth()/2+0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			break;
+			
+		case 3:
+			g2d.setColor(new Color(255, 0, 0));
+			g2d.fillOval((int)(gamewindow.getWidth()/2-0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			break;
+			
+		case 2:	
+			g2d.setColor(new Color(255, 0, 0));
+			g2d.fillOval((int)(gamewindow.getWidth()/2-1.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			break;
+			
+		case 1: 
+			g2d.setColor(new Color(0, 255, 0));
+			g2d.fillOval((int)(gamewindow.getWidth()/2-0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			g2d.fillOval((int)(gamewindow.getWidth()/2-1.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			g2d.fillOval((int)(gamewindow.getWidth()/2+0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
+			oldXForm1 = g2d.getTransform();
+			game.paint(g2d);
+			g2d.setTransform(oldXForm1);
+			g2d.setColor(new Color(0, 0, 0));
+			String time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
+			g2d.drawString(time, 10, 30);
+			break;
+
+		default:
+			if (playing) { 
+				AffineTransform oldXForm = g2d.getTransform();
+				game.paint(g2d);
+				
+				g2d.setTransform(oldXForm); // Restore transform
+				if (tellsec > 2 && tellsec < 5) {
+					game.DrawMap(g2d,gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 2*d, 4*d);
+				}
+				g2d.setColor(new Color(0, 0, 0));
+				time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
+				g2d.drawString(time, 10, 30);
+			}
 		}
 	}
 	public void windowActivated(WindowEvent arg0) {}  
