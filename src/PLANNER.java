@@ -1,8 +1,6 @@
 
 public class PLANNER {
 	
-	private GUI Gui;
-	private MAP Map;
 	public int LasPosX;
 	public int LasPosY;
 	
@@ -46,7 +44,7 @@ public class PLANNER {
 		int Hegt = 700;
 		MATERIAL mat = new MATERIAL("GRASS");
 		
-		MAP map=new MAP(Widt, Hegt, mat);
+		MAP map = new MAP(Widt, Hegt, mat);
 		this.LasPosY=Hegt/2;
 		this.LasPosX=100;
 		map.Blur();
