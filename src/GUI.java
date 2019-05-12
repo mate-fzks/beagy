@@ -41,24 +41,31 @@ public class GUI extends JPanel{
 		JButton ButtonSingle = new JButton("Singleplayer");
 		JButton ButtonMulti = new JButton("Multiplayer");
 
-
 	    ButtonPlanner.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
+	        	 menu.setVisible(false);
 	        	//Pályatervezés start
 		        PLANNER plan = new PLANNER();
 		        MAP act_map2 = plan.CreateMap();
 		     	MATERIAL snow = new MATERIAL("SNOW");
 		     	MATERIAL tarmac = new MATERIAL("TARMAC");
 
+		     	MATERIAL grass = new MATERIAL("GRASS");
+		     	MATERIAL gravel = new MATERIAL("GRAVEL");
 		     	MATERIAL MUD = new MATERIAL("MUD");
-		     	act_map2 = plan.CreateStraight(act_map2,45,100,50,snow);
-		     	act_map2 = plan.CreateStraight(act_map2,20,200,50,tarmac);	
-		     	act_map2 = plan.CreateStraight(act_map2,70,200,50,MUD);
-		     	act_map2 = plan.CreateStraight(act_map2,-10,200,50,tarmac);	
-		     	act_map2 = plan.CreateCircle(act_map2,50,140,200, 50, snow);
-		     	act_map2 = plan.CreateStraight(act_map2,180,200,50,tarmac);	
+		     	act_map2 = plan.CreateStraight(act_map2,45,100,5,snow,grass);
+		     	act_map2 = plan.CreateStraight(act_map2,20,200,5,tarmac,gravel);	
+		     	act_map2 = plan.CreateStraight(act_map2,70,200,5,MUD,snow);
+		     	act_map2 = plan.CreateStraight(act_map2,-10,200,5,tarmac,snow);	
+		     	act_map2 = plan.CreateCircle(act_map2,30,110,200, 5, snow);
+		     	act_map2 = plan.CreateStraight(act_map2,180,200,5,tarmac,snow);	
 		     	act_map2 = plan.LoopClosure(act_map2);
-		        //new GAMEPLAY(act_map2, false).StartGameplay(frame);
+		     	
+		        game = new GAMEPLAY(act_map2, false);
+		        
+		        game.gamewindow.setVisible(true);
+	    	     
+	    		single = true;
 	         }          
 	    });
 	    ButtonSingle.addActionListener(new ActionListener() {
