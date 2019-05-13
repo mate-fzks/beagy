@@ -7,6 +7,21 @@ public class MAP {
 	private MATERIAL[][] Track;
 	public MATERIAL[][] TrackDraw;
 	
+	public MAP() {
+		Widt = 1200;
+		Hegt = 700;
+		TrackDraw = new MATERIAL[Widt][Hegt];
+		Track = new MATERIAL[Widt][Hegt];
+		MATERIAL material = new MATERIAL("GRASS");
+		this.mat = material;
+		for(int i=0; i<Widt ; i++)
+		{
+			for(int j=0; j< Hegt; j++) {
+				TrackDraw[i][j]=material;
+			}
+		}
+	}
+	
 	public MAP(int width, int height, MATERIAL mat) {
 		Widt = width;
 		Hegt = height;

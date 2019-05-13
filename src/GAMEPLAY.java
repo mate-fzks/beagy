@@ -32,6 +32,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		this.gameMode = multi_player;
 		playing = true;
 		ready = 0;
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		gamewindow = new JFrame("Gran Turismo Forza X");
 	    gamewindow.add(this);
@@ -39,6 +40,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		gamewindow.addWindowListener(this);
 		gamewindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		gamewindow.setResizable(false);
+		gamewindow.setLocation(dim.width/2-gamewindow.getSize().width/2, dim.height/2-gamewindow.getSize().height/2);
 		
 		v1 = new VEHICLE(100,400,3*Math.PI/2);
 		running = false;

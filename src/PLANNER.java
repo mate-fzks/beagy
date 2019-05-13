@@ -54,7 +54,7 @@ public class PLANNER {
 	}
 	
 	
-	public MAP CreateStraight(MAP map, int ang, int track_length, int track_width, MATERIAL track_surface, MATERIAL track_side) {
+	public MAP CreateStraight(MAP map, int ang, int track_length, int track_width, MATERIAL track_surface) {
 		for (int i=0; i<map.GetWidth(); i++) {
 			for (int j=0; j<map.GetHeight(); j++) {
 				
@@ -142,7 +142,7 @@ public class PLANNER {
 			ypos=(int)(this.LasPosY-Math.abs(ang)/ang*1*track_radius*(1-Math.cos(ang*Math.PI/180)));
 		}
 		else {
-			ypos=(int)(this.LasPosY-1*track_radius*(1+Math.sin((Math.abs(ang)-90)*Math.PI/180)));
+			ypos=(int)(this.LasPosY-Math.abs(ang)/ang*track_radius*(1+Math.sin((Math.abs(ang)-90)*Math.PI/180)));
 		}
 
 		xc=this.LasPosX;
@@ -168,9 +168,10 @@ public class PLANNER {
 		return map;
 	}
 
-	public MAP LoopClosure(MAP map) {
+	
+	public boolean LoopClosureCheck(MAP map) {
 		boolean closeloop=true;
-		MATERIAL close = new MATERIAL("TARMAC");
+
 		for (int i=1; i<map.GetWidth(); i++) {
 			for (int j=1; j<map.GetHeight(); j++) {
 				if((((i-100)/(this.LasPosX-100+0.005))<((j-700/2)/(this.LasPosY-700/2+0.01)+0.01)) && ((i-100)/(this.LasPosX-100+0.01)>((j-700/2)/(this.LasPosY-700/2+0.01)-0.005)) && (j>Math.min(this.LasPosY,700/2)) && (j<Math.max(this.LasPosY,700/2)) && (i>Math.min(this.LasPosX, 100)) && (i<Math.max(this.LasPosX, 100))) {
@@ -178,7 +179,22 @@ public class PLANNER {
 				}
 			}
 		}
-		
+		return closeloop;
+
+	}
+	
+	public MAP LoopClosure(MAP map) {
+		boolean closeloop=true;
+		MATERIAL close = new MATERIAL("TARMAC");
+		/*
+		for (int i=1; i<map.GetWidth(); i++) {
+			for (int j=1; j<map.GetHeight(); j++) {
+				if((((i-100)/(this.LasPosX-100+0.005))<((j-700/2)/(this.LasPosY-700/2+0.01)+0.01)) && ((i-100)/(this.LasPosX-100+0.01)>((j-700/2)/(this.LasPosY-700/2+0.01)-0.005)) && (j>Math.min(this.LasPosY,700/2)) && (j<Math.max(this.LasPosY,700/2)) && (i>Math.min(this.LasPosX, 100)) && (i<Math.max(this.LasPosX, 100))) {
+					if(map.TrackDraw[i][j]!=map.mat) closeloop=false;
+				}
+			}
+		}
+		*/
 		for (int i=1; i<map.GetWidth(); i++) {
 			for (int j=1; j<map.GetHeight(); j++) {
 				if((((i-100)/(this.LasPosX-100+0.005))<((j-700/2)/(this.LasPosY-700/2+0.01)+0.01)) && ((i-100)/(this.LasPosX-100+0.01)>((j-700/2)/(this.LasPosY-700/2+0.01)-0.005)) && (j>Math.min(this.LasPosY,700/2)) && (j<Math.max(this.LasPosY,700/2)) && (i>Math.min(this.LasPosX, 100)) && (i<Math.max(this.LasPosX, 100)) && closeloop) {
@@ -188,9 +204,9 @@ public class PLANNER {
 		}
 		
 		for(int k=0; k<50; k++) {
-			for (int i=0; i<map.GetWidth(); i++) {
-				for (int j=0; j<map.GetHeight(); j++) {
-					if(map.TrackDraw[i][j]!=map.mat) {
+			for (int i=1; i<map.GetWidth(); i++) {
+				for (int j=1; j<map.GetHeight(); j++) {
+					if((map.TrackDraw[i][j]!=map.mat) && closeloop) {
 						map.TrackDraw[i-1][j-1]=map.TrackDraw[i][j];
 						map.TrackDraw[i-1][j]=map.TrackDraw[i][j];
 						map.TrackDraw[i][j-1]=map.TrackDraw[i][j];
