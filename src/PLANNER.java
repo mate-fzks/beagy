@@ -4,6 +4,16 @@ public class PLANNER {
 	public int LasPosX;
 	public int LasPosY;
 	
+	public PLANNER(PLANNER plan) {
+		LasPosX=plan.LasPosX;
+		LasPosY=plan.LasPosY;
+	}
+	
+	public PLANNER() {
+		LasPosX=0;
+		LasPosY=0;
+	}
+
 	public MAP DefaultMap() {
 		int Widt = 1200;
 		int Hegt = 700;
@@ -55,6 +65,7 @@ public class PLANNER {
 	
 	
 	public MAP CreateStraight(MAP map, int ang, int track_length, int track_width, MATERIAL track_surface) {
+		//MAP tempmap=new MAP(map);
 		for (int i=0; i<map.GetWidth(); i++) {
 			for (int j=0; j<map.GetHeight(); j++) {
 				
@@ -182,7 +193,7 @@ public class PLANNER {
 		return closeloop;
 
 	}
-	
+		
 	public MAP LoopClosure(MAP map) {
 		boolean closeloop=true;
 		MATERIAL close = new MATERIAL("TARMAC");
@@ -195,18 +206,20 @@ public class PLANNER {
 			}
 		}
 		*/
-		for (int i=1; i<map.GetWidth(); i++) {
-			for (int j=1; j<map.GetHeight(); j++) {
+		for (int i=0; i<map.GetWidth(); i++) {
+			for (int j=0; j<map.GetHeight(); j++) {
 				if((((i-100)/(this.LasPosX-100+0.005))<((j-700/2)/(this.LasPosY-700/2+0.01)+0.01)) && ((i-100)/(this.LasPosX-100+0.01)>((j-700/2)/(this.LasPosY-700/2+0.01)-0.005)) && (j>Math.min(this.LasPosY,700/2)) && (j<Math.max(this.LasPosY,700/2)) && (i>Math.min(this.LasPosX, 100)) && (i<Math.max(this.LasPosX, 100)) && closeloop) {
 					map.TrackDraw[i][j]=close;
 				}
 			}
 		}
 		
-		for(int k=0; k<50; k++) {
+		
+		
+		for(int k=1; k<50; k++) {
 			for (int i=1; i<map.GetWidth(); i++) {
 				for (int j=1; j<map.GetHeight(); j++) {
-					if((map.TrackDraw[i][j]!=map.mat) && closeloop) {
+					if(map.TrackDraw[i][j]!=map.mat) {
 						map.TrackDraw[i-1][j-1]=map.TrackDraw[i][j];
 						map.TrackDraw[i-1][j]=map.TrackDraw[i][j];
 						map.TrackDraw[i][j-1]=map.TrackDraw[i][j];
@@ -215,17 +228,6 @@ public class PLANNER {
 			}
 		}
 		/*
-		for(int k=0; k<50; k++) {
-			for (int i=0; i<map.GetWidth(); i++) {
-				for (int j=0; j<map.GetHeight(); j++) {
-					if(map.TrackDraw[i][j]!=map.mat) {
-						map.TrackDraw[i-1][j-1]=map.TrackDraw[i][j];
-						map.TrackDraw[i-1][j]=map.TrackDraw[i][j];
-						map.TrackDraw[i][j-1]=map.TrackDraw[i][j];
-					}
-				}
-			}
-		}/*
 		for(int k=0; k<50; k++) {
 			for (int i=1; i<map.GetWidth(); i++) {
 				for (int j=1; j<map.GetHeight(); j++) {
