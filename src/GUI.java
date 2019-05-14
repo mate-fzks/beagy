@@ -4,6 +4,8 @@ import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 
 
+
+
 public class GUI extends JPanel{
 
 	private GAMEPLAY game;
@@ -24,6 +26,19 @@ public class GUI extends JPanel{
 		}
 	}
 	
+	
+	public static boolean isNum(String strNum) {
+	    boolean ret = true;
+	    try {
+
+	        Double.parseDouble(strNum);
+
+	    }catch (NumberFormatException e) {
+	        ret = false;
+	    }
+	    return ret;
+	}
+	
 	public void SetUpGUI(GUI gui) {
 
 		
@@ -42,6 +57,9 @@ public class GUI extends JPanel{
 		JButton ButtonSingle = new JButton("Singleplayer");
 		JButton ButtonMulti = new JButton("Multiplayer");
 		
+		PLANNER plan[] = {new PLANNER()};
+		MAP act_map[] = {plan[0].DefaultMap()};
+	    
 	    ButtonPlanner.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
 	        	 
@@ -77,15 +95,17 @@ public class GUI extends JPanel{
 				
 				JButton CreateStraight = new JButton("Create Straight");
 				JButton CreateCircle = new JButton("Create Arc");
-				JButton Clear = new JButton("Clear");
+				JButton Redesign = new JButton("Redesign");
 				JButton CloseLoop = new JButton("Close Loop");
-				JButton StartGame = new JButton("Start Game");
+				JButton SaveTrack = new JButton("SaveTrack");
+				JButton Menu = new JButton("Menu");
 				
 				CreateStraight.setBounds(100, 20, 200, 20);
 				CreateCircle.setBounds(400, 20, 200, 20);
-				Clear.setBounds(433, 300, 100, 20);
-				CloseLoop.setBounds(166,300,100,20);
-				StartGame.setBounds(275, 400, 150, 40);
+				Redesign.setBounds(300, 300, 100, 20);
+				CloseLoop.setBounds(100,300,100,20);
+				SaveTrack.setBounds(275, 400, 150, 40);
+				Menu.setBounds(500,300,100,20);
 				
 				straight_angle = new JTextField(5);
 				straight_angle.setBounds(100,100,100,20);
@@ -127,7 +147,8 @@ public class GUI extends JPanel{
 				
 				buttons.add(CreateStraight);
 			    buttons.add(CreateCircle);
-			    buttons.add(Clear); 
+			    buttons.add(Redesign); 
+			    buttons.add(Menu);
 			   
 			    buttons.add(straight_angle);
 			    buttons.add(straight_angle_label);
@@ -153,50 +174,60 @@ public class GUI extends JPanel{
 			    buttons.add(CloseLoop);
 			    
 
-			    buttons.add(StartGame);
-			    StartGame.setVisible(false);
+			    buttons.add(SaveTrack);
+			    SaveTrack.setVisible(false);
 			    planner_setup.setVisible(true);
 			  //  CloseLoop.setVisible(false);
 			    
 			    
 			    //Pályatervezés start
-			    PLANNER plan = new PLANNER();
-			    PLANNER plan1 = new PLANNER();
-		        MAP[] act_map2 = {plan.CreateMap(),plan1.CreateMap()};
-		      	int prevang[]= {0}, prevdist[]= {0};
+			    PLANNER plan[] = {new PLANNER()};
+			    PLANNER plan1[] = {new PLANNER()};
+		        MAP[] act_map2 = {plan[0].CreateMap(),plan1[0].CreateMap()};
 		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false)};
 		        boolean closeable[]= {false};
-
+		        boolean firststep[]= {true};
+		        int prevang[]= {0},prevdist[]= {0}, prevcircori[]= {0}, prevcircang[]= {0},prevcircrad[]= {0};
+		        
 			    CreateStraight.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
-				        MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
-				        act_map2[1] = plan1.CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);;
-				        act_map2[0] = plan.CreateStraight(act_map2[0], Integer.parseInt(straight_angle.getText()), Integer.parseInt(straight_dist.getText()), 5, track_mat);			      
-				        prevang[0] = Integer.parseInt(straight_angle.getText());
-				        prevdist[0] = Integer.parseInt(straight_dist.getText());
+			    		MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
+			    		if(	isNum(straight_angle.getText()) && isNum(straight_dist.getText())) {
+				    		if(!firststep[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		firststep[0]=false;
+					        act_map2[0] = plan[0].CreateStraight(act_map2[0], Integer.parseInt(straight_angle.getText()), Integer.parseInt(straight_dist.getText()), 5, track_mat);	
+			    		}    
+				        prevang[0]=Integer.parseInt(straight_angle.getText());
+				        prevdist[0]=Integer.parseInt(straight_dist.getText());
+		
 				        planning[0].gamewindow.setVisible(false);
 				        planning[0] = new GAMEPLAY(act_map2[0],false);
 				        planning[0].gamewindow.setVisible(true);
-				        closeable[0]=plan.LoopClosureCheck(act_map2[0]);
-					    StartGame.setVisible(false);
+				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
+				        SaveTrack.setVisible(false);
 
-				    //    if(!closeable[0]) CloseLoop.setVisible(false);
-				   //     else CloseLoop.setVisible(true);
+				    //  if(!closeable[0]) CloseLoop.setVisible(false);
+				   //   else CloseLoop.setVisible(true);
 		           	}
 			    });
 			    
 			    CreateCircle.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 				        MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
-				       // act_map2[1] = plan1.CreateCircle(act_map2[1], prevang[0], prevdist[0], 5, track_mat);;
-				        act_map2[0] = plan.CreateCircle(act_map2[0], Integer.parseInt(circ_orient.getText()), Integer.parseInt(circ_ang.getText()), Integer.parseInt(circ_rad.getText()), 5, track_mat);			      
-				        //prevang[0] = Integer.parseInt(straight_angle.getText());
-				        //prevdist[0] = Integer.parseInt(straight_dist.getText());
+				      if(isNum(circ_orient.getText()) && isNum(circ_ang.getText()) && isNum(circ_rad.getText())) {
+					        if(!firststep[0] && prevcircori[0]!=0 && prevcircang[0]!=0 && prevcircrad[0]!=0) act_map2[1] =  plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
+					        firststep[0]=false;
+					        act_map2[0] = plan[0].CreateCircle(act_map2[0], Integer.parseInt(circ_orient.getText()), Integer.parseInt(circ_ang.getText()), Integer.parseInt(circ_rad.getText()), 5, track_mat);			      
+					    }
+				        prevcircori[0]=Integer.parseInt(circ_orient.getText());
+				        prevcircang[0]=Integer.parseInt(circ_ang.getText());
+				        prevcircrad[0]=Integer.parseInt(circ_ang.getText());
+				        
 				        planning[0].gamewindow.setVisible(false);
 				        planning[0] = new GAMEPLAY(act_map2[0],false);
 				        planning[0].gamewindow.setVisible(true);
-				        closeable[0]=plan.LoopClosureCheck(act_map2[0]);
-					    StartGame.setVisible(false);
+				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
+				        SaveTrack.setVisible(false);
 
 				       // if(!closeable[0]) CloseLoop.setVisible(false);
 				       // else CloseLoop.setVisible(true);
@@ -206,33 +237,50 @@ public class GUI extends JPanel{
 			    CloseLoop.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(plan.LoopClosure(act_map2[0]),false);
+				        planning[0] = new GAMEPLAY(plan[0].LoopClosure(act_map2[0]),false);
 				        planning[0].gamewindow.setVisible(true);
-					    StartGame.setVisible(true);
+				        SaveTrack.setVisible(true);
 
 		           	}
 			    });
 		 
-			    Clear.addActionListener(new ActionListener() {
+			    Redesign.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
-			    	act_map2[0] = plan.CreateMap();
-				    planning[0].gamewindow.setVisible(false);
-			        planning[0] = new GAMEPLAY(act_map2[0],false);
-			        planning[0].gamewindow.setVisible(true);
-				    StartGame.setVisible(false);
+			    		plan[0]=new PLANNER(plan1[0]);
 
-			    	
+			    		act_map2[0] = new MAP(act_map2[1]);
+	
+				    	firststep[0]=true;
+				    	
+				    	planning[0].gamewindow.setVisible(false);
+				        planning[0] = new GAMEPLAY(act_map2[0],false);
+				        planning[0].gamewindow.setVisible(true);
+				        SaveTrack.setVisible(false);
+
+			    	  	}
+			    });
+			    
+			    SaveTrack.addActionListener(new ActionListener() {
+			    	public void actionPerformed(ActionEvent e) {
+			    		act_map[0]=act_map2[0];
+			    		planner_setup.setVisible(false);
+			    		menu.setVisible(true);
+				    	planning[0].gamewindow.setVisible(false);
+			    	/*
+				        game = new GAMEPLAY(act_map[0], false);
+				        
+				        game.gamewindow.setVisible(true);
+			    	     
+			    		single = true;
+			    	*/
 			    	}
 			    });
 			    
-			    StartGame.addActionListener(new ActionListener() {
+			    Menu.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
-			    	game = new GAMEPLAY(act_map2[0], false);
-			        
-			        game.gamewindow.setVisible(true);
-		    	     
-		    		single = true;
-
+			    		planner_setup.setVisible(false);
+			    		menu.setVisible(true);
+				    	planning[0].gamewindow.setVisible(false);
 			    	
 			    	}
 			    });
@@ -254,25 +302,47 @@ public class GUI extends JPanel{
 		     	*/
 		     	
 		     	/*
-		        game = new GAMEPLAY(act_map2, false);
-		        
-		        game.gamewindow.setVisible(true);
-	    	     
-	    		single = true;
+		  
 	    		*/
 	    		
 	         }          
 	    });
 	    ButtonSingle.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
-	    		 menu.setVisible(false);
-	    		 PLANNER plan = new PLANNER();
-	    	     MAP act_map = plan.DefaultMap();
-	    	     game = new GAMEPLAY(act_map,false);
-	        	 
-	    		 game.gamewindow.setVisible(true);
-	    		 	    	     
-	    		 single = true;
+	    		menu.setVisible(false);
+
+	    	    game = new GAMEPLAY(act_map[0],false);
+	    	    
+	    	    game.gamewindow.setVisible(true);
+	    	     
+	    		single = true;
+	    		
+	        	JFrame ingame_menu;
+	        
+	    	    ingame_menu = new JFrame("Menu");
+	        	ingame_menu.add(gui);
+	        	ingame_menu.setSize(1200, 100);
+	    		JPanel panel = new JPanel();
+	    		panel.setLayout(new FlowLayout());
+	    		ingame_menu.add(panel);
+	        	JButton Menu = new JButton("Menu");
+	        	Menu.setBounds(50, 20, 100, 20);
+	    		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	    		ingame_menu.setLocation(dim.width/2-ingame_menu.getSize().width/2, dim.height/2-ingame_menu.getSize().height/2-390);
+	    		panel.add(Menu);
+	    	    ingame_menu.setVisible(true);
+	    	    
+	    		Menu.addActionListener(new ActionListener() {
+			    	public void actionPerformed(ActionEvent e) {
+			    		game.gamewindow.setVisible(false);
+			    		menu.setVisible(true);
+			    	    ingame_menu.setVisible(false);
+
+			    	}
+			 });
+	    	     
+	    	     
+	    		 
 	         }
 	    });
 	    ButtonMulti.addActionListener(new ActionListener() {

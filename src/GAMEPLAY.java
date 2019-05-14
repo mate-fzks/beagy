@@ -1,6 +1,9 @@
 import java.util.*;
 import java.awt.*;
 import javax.swing.*;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
@@ -24,8 +27,11 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	private BufferedImage car;
 	public JFrame gamewindow;
 	private boolean playing;
-	private long tellmil;
-	private int tellsec, tellmin, ready;
+	private long tellmil, tellmilbest=100;
+	private int tellsec,tellsecbest=100, tellmin,tellminbest=100, ready;
+	public int lap=1;
+	public int checkpoint[]= {350,100};
+	boolean checked=false;
 	
 	public GAMEPLAY(MAP map,boolean multi_player) {
 		this.map = map;
@@ -35,6 +41,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		gamewindow = new JFrame("Gran Turismo Forza X");
+      //gamewindow.getContentPane().setLayout(null);
 	    gamewindow.add(this);
 		gamewindow.setSize(1200, 700);
 		gamewindow.addWindowListener(this);
@@ -42,10 +49,25 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		gamewindow.setResizable(false);
 		gamewindow.setLocation(dim.width/2-gamewindow.getSize().width/2, dim.height/2-gamewindow.getSize().height/2);
 		
+		int dist=0;
+		for(int i=0;i<this.map.GetWidth();i++) {
+			for(int j=0;j<this.map.GetHeight();j++) {
+				if(this.map.TrackDraw[i][j]!=this.map.mat) {
+					if((i-350)*(i-350)+(j+100)*(j+100)>dist) {
+						dist=(i-350)*(i-350)+(j+100)*(j+100);
+						checkpoint[0]=i;
+						checkpoint[1]=j;
+					}
+				}
+			}
+		}
+		
 		v1 = new VEHICLE(100,400,3*Math.PI/2);
 		running = false;
 		try {car = ImageIO.read(new File("kocsi.png"));
 		} catch (IOException e){}
+		
+	
 		
 		addKeyListener(new KeyListener() {
 			@Override
@@ -137,8 +159,17 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 					DrawMap(g2d,gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 2*d, 4*d);
 				}
 				g2d.setColor(new Color(0, 0, 0));
-				time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
+				
+				time = String.format("Actual Time: %02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
 				g2d.drawString(time, 10, 30);
+				time = String.format("Best Time: %02d" + ":" + "%02d" + ":" + "%02d", tellminbest, tellsecbest, tellmilbest/10);
+				g2d.drawString(time, 400, 30);
+				time = String.format("Lap: %02d", lap);
+				g2d.drawString(time, 800, 30);
+				time = String.format( "%02d" + ":" + "%02d", checkpoint[0], checkpoint[1]);
+				g2d.drawString(time, checkpoint[0], checkpoint[1]);
+				time = String.format( "%b" , checked);
+				g2d.drawString(time,1000,30);
 			}
 		}
 	}
@@ -164,7 +195,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
 			running = true;
 		}
-		DrawMap(g2d,0,0,40,150);
+		DrawMap(g2d,0,0,40,1200);
 		
 		//ha multi
 		if (gameMode) {
@@ -227,6 +258,8 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		}
 	}
 	
+
+	
 	public void StartServer() {
 		
 	}
@@ -277,6 +310,41 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	    refresh(tau);
 	 	repaint();
 	 	t1 = System.nanoTime();
+	 	
+	 	if((v1.PosX>(checkpoint[0]-100)) && (v1.PosX<(checkpoint[0]+100)) && (v1.PosY>(checkpoint[1]-100)) && (v1.PosY<(checkpoint[1]+100))) {
+	 		checked=true;
+	 	}
+	 	
+	    if((v1.PosX>300) && (v1.PosY>50) && (v1.PosY<350) && (v1.PosX<400) && checked) {
+	    	t0 = System.currentTimeMillis();
+	 	    t1 = System.nanoTime();
+	 	    if(tellsec>2) {
+	 	    	lap++;
+	 	    }
+	 	    if((tellmin<tellminbest) && (tellsec>2)) {
+	 	    	tellminbest=tellmin;
+	 	    	tellsecbest=tellsec;
+	 	    	tellmilbest=tellmil;
+	 	    }
+	 	    else if((tellmin==tellminbest) && (tellsec>2)) {
+	 	    	if(tellsec<tellsecbest) {
+	 	    		tellminbest=tellmin;
+		 	    	tellsecbest=tellsec;
+		 	    	tellmilbest=tellmil;
+	 	    	}
+	 	    	else if((tellsec==tellsecbest) && (tellsec>2)) {
+	 	    		if(tellmil<tellmilbest) {
+	 	    			tellminbest=tellmin;
+	 		 	    	tellsecbest=tellsec;
+	 		 	    	tellmilbest=tellmil;
+	 	    		}
+	 	    	}
+	 	    }
+	    	tellmil=0;
+	    	tellmin=0;
+	    	tellsec=0;
+	    	checked=false;
+	    }
 	    }
 	} 
 	
