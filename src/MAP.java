@@ -23,18 +23,27 @@ public class MAP {
 	}
 	
 	public MAP(MAP map) {
-		Widt=map.GetWidth();
-		Hegt=map.GetHeight();
-		mat=new MATERIAL(map.mat);
-		TrackDraw = new MATERIAL[Widt][Hegt];
-		Track = new MATERIAL[Widt][Hegt];
-		for(int i=0;i<Widt;i++) {
-			for(int j=0;j<Hegt;j++) {
-				//Track[i][j]=new MATERIAL(map.Track[i][j]);
-				TrackDraw[i][j]=new MATERIAL(map.TrackDraw[i][j]);
+		this.Widt=map.GetWidth();
+		this.Hegt=map.GetHeight();
+		this.mat=new MATERIAL(map.mat);
+		this.TrackDraw = new MATERIAL[map.GetWidth()][map.GetHeight()];
+		this.Track = new MATERIAL[map.GetWidth()][map.GetHeight()];
+		for(int i=0; i<Widt ; i++)
+		{
+			for(int j=0; j< Hegt; j++) {
+				TrackDraw[i][j]=this.mat;
 			}
 		}
-	}
+		for(int i=0; i<Widt ; i++)
+		{
+			for(int j=0; j< Hegt; j++) {
+					if(map.TrackDraw[i][j]!=map.mat){
+						TrackDraw[i][j] = new MATERIAL(map.TrackDraw[i][j]);
+					}
+				}
+			}
+		}
+
 	
 	public MAP(int width, int height, MATERIAL mat) {
 		Widt = width;

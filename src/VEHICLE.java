@@ -1,10 +1,13 @@
+import java.io.Serializable;
 
-public class VEHICLE extends GRID {
+public class VEHICLE implements Serializable{
 
 	public double Ori;
 	public double Vel;
 	public double AngVel;
 	public double dt;
+	public double PosX;
+	public double PosY;
 	
 	private static double MinRadius = 60; //maximum kanyarodási szögsebessége az autónak
 	

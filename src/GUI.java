@@ -2,7 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-
+import java.util.Arrays;
 
 
 
@@ -10,8 +10,13 @@ public class GUI extends JPanel{
 
 	private GAMEPLAY game;
 	private volatile boolean single;
+	private volatile boolean textgot = false;
+	private volatile boolean Multi = false;
+	private JFrame menu, networkmenu, waitforclient;
+	private String ipadress;
+	private Server server;
+	
 
-	private JFrame menu;
 	
 	public void GUIStart() {
 		
@@ -23,6 +28,19 @@ public class GUI extends JPanel{
 			if (single) {
 				game.GameCycle();
 			}
+			if(Multi)
+			{
+				if(game.serverorclient)
+				{
+				
+						game.GameCycle();
+				}
+				else
+				{
+						game.GameCycle();
+				}
+			}
+
 		}
 	}
 	
@@ -50,6 +68,37 @@ public class GUI extends JPanel{
 		
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new FlowLayout());
+		
+		networkmenu = new JFrame("Menu");
+		networkmenu.add(gui);
+		networkmenu.setSize(400, 400);
+		networkmenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		networkmenu.setResizable(false);
+		
+		waitforclient = new JFrame();
+		waitforclient.add(gui);
+		JPanel waitforclientjp = new JPanel();
+		JLabel waitforclientjl = new JLabel("Waiting for Client");
+		waitforclient.setTitle("Menu");
+		waitforclient.setSize(400,200);
+		waitforclient.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		waitforclientjl.setText("Waiting for Client");
+		waitforclientjl.setHorizontalAlignment(JLabel.CENTER);
+		waitforclientjl.setVerticalAlignment(JLabel.CENTER);
+		waitforclientjp.add(waitforclientjl);
+		waitforclient.add(waitforclientjp);
+		
+		JFrame ipaddmenu = new JFrame();
+		JPanel ipaddmenujp = new JPanel();
+		JTextField ipaddmenujt = new JTextField(30);
+		ipaddmenu.setTitle("Menu");
+		ipaddmenu.setSize(400,200);
+		ipaddmenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		ipaddmenujp.add(ipaddmenujt);
+		ipaddmenu.add(ipaddmenujp);
+		JButton ipaddmenujb = new JButton("Enter");
+		ipaddmenujp.add(ipaddmenujb);
+		
 		
 		menu.add(buttons);
 		
@@ -177,37 +226,40 @@ public class GUI extends JPanel{
 			    buttons.add(SaveTrack);
 			    SaveTrack.setVisible(false);
 			    planner_setup.setVisible(true);
-			  //  CloseLoop.setVisible(false);
+			    CloseLoop.setVisible(false);
 			    
 			    
 			    //Pályatervezés start
 			    PLANNER plan[] = {new PLANNER()};
 			    PLANNER plan1[] = {new PLANNER()};
 		        MAP[] act_map2 = {plan[0].CreateMap(),plan1[0].CreateMap()};
-		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false)};
+		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false,true)};
 		        boolean closeable[]= {false};
 		        boolean firststep[]= {true};
+		        boolean straight[] = {true};
 		        int prevang[]= {0},prevdist[]= {0}, prevcircori[]= {0}, prevcircang[]= {0},prevcircrad[]= {0};
 		        
 			    CreateStraight.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 			    		MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
 			    		if(	isNum(straight_angle.getText()) && isNum(straight_dist.getText())) {
-				    		if(!firststep[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		if(!firststep[0] && straight[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		if(!firststep[0] && !straight[0])  act_map2[1] = plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
 				    		firststep[0]=false;
+				    		straight[0]=true;
 					        act_map2[0] = plan[0].CreateStraight(act_map2[0], Integer.parseInt(straight_angle.getText()), Integer.parseInt(straight_dist.getText()), 5, track_mat);	
 			    		}    
 				        prevang[0]=Integer.parseInt(straight_angle.getText());
 				        prevdist[0]=Integer.parseInt(straight_dist.getText());
 		
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(act_map2[0],false);
+				        planning[0] = new GAMEPLAY(act_map2[0],false,true);
 				        planning[0].gamewindow.setVisible(true);
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
 
-				    //  if(!closeable[0]) CloseLoop.setVisible(false);
-				   //   else CloseLoop.setVisible(true);
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 		           	}
 			    });
 			    
@@ -215,30 +267,34 @@ public class GUI extends JPanel{
 			    	public void actionPerformed(ActionEvent e) {
 				        MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
 				      if(isNum(circ_orient.getText()) && isNum(circ_ang.getText()) && isNum(circ_rad.getText())) {
-					        if(!firststep[0] && prevcircori[0]!=0 && prevcircang[0]!=0 && prevcircrad[0]!=0) act_map2[1] =  plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
+					        if(!firststep[0] && prevcircang[0]!=0 && prevcircrad[0]!=0 && !straight[0]) act_map2[1] = plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
+					        if(!firststep[0] && prevcircang[0]==0 && prevcircrad[0]==0) act_map2[1] = plan1[0].CreateStraight(act_map2[1], 0, 0, 5, track_mat);
+					        if(!firststep[0] && straight[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		straight[0]=false;
 					        firststep[0]=false;
 					        act_map2[0] = plan[0].CreateCircle(act_map2[0], Integer.parseInt(circ_orient.getText()), Integer.parseInt(circ_ang.getText()), Integer.parseInt(circ_rad.getText()), 5, track_mat);			      
 					    }
 				        prevcircori[0]=Integer.parseInt(circ_orient.getText());
 				        prevcircang[0]=Integer.parseInt(circ_ang.getText());
-				        prevcircrad[0]=Integer.parseInt(circ_ang.getText());
+				        prevcircrad[0]=Integer.parseInt(circ_rad.getText());
 				        
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(act_map2[0],false);
+				        planning[0] = new GAMEPLAY(act_map2[0],false,true);
 				        planning[0].gamewindow.setVisible(true);
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
 
-				       // if(!closeable[0]) CloseLoop.setVisible(false);
-				       // else CloseLoop.setVisible(true);
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 		           	}
 			    });
 			    
 			    CloseLoop.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(plan[0].LoopClosure(act_map2[0]),false);
+				        planning[0] = new GAMEPLAY(plan[0].LoopClosure(act_map2[0]),false,true);
 				        planning[0].gamewindow.setVisible(true);
+				        
 				        SaveTrack.setVisible(true);
 
 		           	}
@@ -247,15 +303,19 @@ public class GUI extends JPanel{
 			    Redesign.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 			    		plan[0]=new PLANNER(plan1[0]);
-
-			    		act_map2[0] = new MAP(act_map2[1]);
+			    		
+		        		act_map2[0] = new MAP(act_map2[1]);
 	
 				    	firststep[0]=true;
 				    	
 				    	planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(act_map2[0],false);
+				        planning[0] = new GAMEPLAY(act_map2[0],false,true);
 				        planning[0].gamewindow.setVisible(true);
+				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
+				        
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 
 			    	  	}
 			    });
@@ -311,7 +371,7 @@ public class GUI extends JPanel{
 	         public void actionPerformed(ActionEvent e) {
 	    		menu.setVisible(false);
 
-	    	    game = new GAMEPLAY(act_map[0],false);
+	    	    game = new GAMEPLAY(act_map[0],false,true);
 	    	    
 	    	    game.gamewindow.setVisible(true);
 	    	     
@@ -347,9 +407,68 @@ public class GUI extends JPanel{
 	    });
 	    ButtonMulti.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
-	            
+	        	menu.setVisible(false);
+	     		single = false;
+	         	JPanel multiplayerbuttons = new JPanel();
+	         	multiplayerbuttons.setLayout(new FlowLayout());
+	         	
+	         	networkmenu.add(multiplayerbuttons); 
+	         	
+	         	JButton createserver = new JButton("Create Server");
+	         	JButton joinserver = new JButton("Join Server");
+	         	
+	         	networkmenu.setVisible(true);
+	         	
+	         	createserver.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						menu.setVisible(false);
+			    	    single = false;
+						networkmenu.setVisible(false);
+						game = new GAMEPLAY(act_map[0],true,true);
+						waitforclient.setVisible(true);
+						
+							try {
+								
+								 Server s =new Server();
+								 game.startServer(s);
+								 waitforclient.setVisible(false);
+								 game.gamewindow.setVisible(true);
+								 Multi = true;
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+					
+	     	         }          
+	         	});
+	         	joinserver.addActionListener(new ActionListener() {
+	        	         public void actionPerformed(ActionEvent e) {     
+					    	single = false;	        	        	 
+	        	        	networkmenu.setVisible(false);
+	        	        	ipaddmenu.setVisible(true);
+	        	        	ipaddmenujb.addActionListener(new ActionListener()
+	        	        	{
+	        	        	
+	        	        	public void actionPerformed(ActionEvent d)
+       	        		{
+	        	        		ipadress = ipaddmenujt.getText();
+	        	        		game = new GAMEPLAY(act_map[0],true,false);
+	        	        		Client c = new Client("127.0.0.1");
+		     	        		game.startClient(c);
+		     	        		game.gamewindow.setVisible(true);
+		     	        		Multi = true;
+		     	        		ipaddmenu.setVisible(false);
+       	        		}
+	        	        	});
+	        	        	
+	        	        	ipaddmenu.add(ipaddmenujp);
+	     				  	}          
+	             	});
+	         	multiplayerbuttons.add(createserver);
+	         	multiplayerbuttons.add(joinserver);  
 	         }
 	      });
+
 	    
 	     buttons.add(ButtonPlanner);
 	     buttons.add(ButtonSingle);

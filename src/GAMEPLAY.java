@@ -24,7 +24,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public boolean running;
 	public int steer;
 	public int drive;
-	private BufferedImage car;
+	private BufferedImage car, car2;
 	public JFrame gamewindow;
 	private boolean playing;
 	private long tellmil, tellmilbest=100;
@@ -32,10 +32,14 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public int lap=1;
 	public int checkpoint[]= {350,100};
 	boolean checked=false;
+	public boolean serverorclient;
+	public Server server;
+	public Client client;
 	
-	public GAMEPLAY(MAP map,boolean multi_player) {
+	public GAMEPLAY(MAP map,boolean multi_player, boolean serverorclient) {
 		this.map = map;
 		this.gameMode = multi_player;
+		this.serverorclient = serverorclient;
 		playing = true;
 		ready = 0;
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -49,6 +53,25 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		gamewindow.setResizable(false);
 		gamewindow.setLocation(dim.width/2-gamewindow.getSize().width/2, dim.height/2-gamewindow.getSize().height/2);
 		
+		if(this.serverorclient)
+		{
+			v1 = new VEHICLE(100,400,3*Math.PI/2);
+			v2 = new VEHICLE(80,400,3*Math.PI/2);
+			try {car = ImageIO.read(new File("kocsi.png"));
+			} catch (IOException e){}
+			try {car2 = ImageIO.read(new File("kocsi2.png"));
+			} catch (IOException e){}
+		}
+		else
+		{
+			v1 = new VEHICLE(80,400,3*Math.PI/2);		
+			v2 = new VEHICLE(100,400,3*Math.PI/2);
+			try {car = ImageIO.read(new File("kocsi2.png"));
+			} catch (IOException e){}
+			try {car2 = ImageIO.read(new File("kocsi.png"));
+			} catch (IOException e){}
+		}
+		
 		int dist=0;
 		for(int i=0;i<this.map.GetWidth();i++) {
 			for(int j=0;j<this.map.GetHeight();j++) {
@@ -61,12 +84,6 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 				}
 			}
 		}
-		
-		v1 = new VEHICLE(100,400,3*Math.PI/2);
-		running = false;
-		try {car = ImageIO.read(new File("kocsi.png"));
-		} catch (IOException e){}
-		
 	
 		
 		addKeyListener(new KeyListener() {
@@ -101,8 +118,17 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public void refresh(double tau) {
 
 	    v1.CalcNewPos(tau, map, drive, steer);
-    	if (gameMode) {
-    		v2.CalcNewPos(tau, map, drive, steer);
+	    if (gameMode) {
+    		if(serverorclient) {
+    			server.SendDatatoClient(v1);
+    			v2 = server.getVehicle2();
+    		}
+    		else
+    		{
+    			client.SendDatatoServer(v1);
+    			v2 = client.getVehicle2();
+    		}
+    		
     	}
 	}
 	
@@ -152,12 +178,13 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		default:
 			if (playing) { 
 				AffineTransform oldXForm = g2d.getTransform();
-				paintGAMEPLAY(g2d);
 				
-				g2d.setTransform(oldXForm); // Restore transform
+				
 				if (tellsec > 2 && tellsec < 5) {
 					DrawMap(g2d,gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 2*d, 4*d);
 				}
+				paintGAMEPLAY(g2d);
+				g2d.setTransform(oldXForm); // Restore transform
 				g2d.setColor(new Color(0, 0, 0));
 				
 				time = String.format("Actual Time: %02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
@@ -166,15 +193,17 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 				g2d.drawString(time, 400, 30);
 				time = String.format("Lap: %02d", lap);
 				g2d.drawString(time, 800, 30);
-				time = String.format( "%02d" + ":" + "%02d", checkpoint[0], checkpoint[1]);
-				g2d.drawString(time, checkpoint[0], checkpoint[1]);
-				time = String.format( "%b" , checked);
-				g2d.drawString(time,1000,30);
+			//	time = String.format( "%02d" + ":" + "%02d", checkpoint[0], checkpoint[1]);
+			//	g2d.drawString(time, 1000, 30);
+			//	time = String.format( "%b" , checked);
+			//	g2d.drawString(time,1000,30);
 			}
 		}
 	}
 	
 	public void paintGAMEPLAY(Graphics2D g2d) {
+		
+		AffineTransform oldXForm = g2d.getTransform();
 		
 		//autó sarkai
 		double CarWidth = (Math.abs(car.getHeight()*Math.cos(v1.Ori))+Math.abs(car.getWidth()*Math.sin(v1.Ori)));
@@ -189,7 +218,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 		//pálya rajzolása
 		if (running) {
-			DrawMap(g2d,LeftCornerX-6,LeftCornerY-6,(int)CarHeight+14,(int)CarWidth+14);
+			DrawMap(g2d,LeftCornerX-26,LeftCornerY-26,(int)CarHeight+34,(int)CarWidth+34);
 		}
 		else {
 			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
@@ -199,18 +228,19 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		
 		//ha multi
 		if (gameMode) {
-			double CarWidth2 = (Math.abs(car.getHeight()*Math.cos(v2.Ori))+Math.abs(car.getWidth()*Math.sin(v2.Ori)));
-			double CarHeight2 = (Math.abs(car.getHeight()*Math.sin(v2.Ori))+Math.abs(car.getWidth()*Math.cos(v2.Ori)));
-			int CornerX2 = (int)(v2.PosX-(car.getHeight()*Math.cos(v2.Ori)+car.getWidth()*Math.sin(v2.Ori))/2);
-			int CornerY2 = (int)(v2.PosY-(car.getHeight()*Math.sin(v2.Ori)-car.getWidth()*Math.cos(v2.Ori))/2);
+			double CarWidth2 = (Math.abs(car2.getHeight()*Math.cos(v2.Ori))+Math.abs(car2.getWidth()*Math.sin(v2.Ori)));
+			double CarHeight2 = (Math.abs(car2.getHeight()*Math.sin(v2.Ori))+Math.abs(car2.getWidth()*Math.cos(v2.Ori)));
+			int CornerX2 = (int)(v2.PosX-(car2.getHeight()*Math.cos(v2.Ori)+car2.getWidth()*Math.sin(v2.Ori))/2);
+			int CornerY2 = (int)(v2.PosY-(car2.getHeight()*Math.sin(v2.Ori)-car2.getWidth()*Math.cos(v2.Ori))/2);
 			
-			double Ori2 = v1.Ori - v1.AngVel * v1.dt;
-			int LeftCornerX2 = (int)(v1.PosX-CarWidth2/2-v1.Vel*Math.cos(Ori2)*v1.dt);
-			int LeftCornerY2 = (int)(v1.PosY-CarHeight2/2-v1.Vel*Math.sin(Ori2)*v1.dt);
+			double Ori2 = v2.Ori - v2.AngVel * v2.dt;
+			int LeftCornerX2 = (int)(v2.PosX-CarWidth2/2-v2.Vel*Math.cos(Ori2)*v2.dt);
+			int LeftCornerY2 = (int)(v2.PosY-CarHeight2/2-v2.Vel*Math.sin(Ori2)*v2.dt);
 
-			DrawMap(g2d,LeftCornerX2-6,LeftCornerY2-6,(int)CarHeight2+14,(int)CarWidth2+14);
+			DrawMap(g2d,LeftCornerX2-26,LeftCornerY2-26,(int)CarHeight2+34,(int)CarWidth2+34);
 			g2d.rotate(v2.Ori-Math.PI/2, CornerX2, CornerY2);
-		    g2d.drawImage(car, CornerX2, CornerY2, this);
+		    g2d.drawImage(car2, CornerX2, CornerY2, this);
+		    g2d.setTransform(oldXForm);
 		}
 		
 	    
@@ -220,7 +250,9 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 	}
 	
-	public void windowActivated(WindowEvent arg0) {}  
+	public void windowActivated(WindowEvent arg0) {
+		running = false;
+	}  
 	public void windowClosed(WindowEvent arg0) {}  
 	public void windowClosing(WindowEvent arg0) {}  
 	public void windowDeactivated(WindowEvent arg0) {}  
@@ -257,16 +289,24 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			x1 = x0;
 		}
 	}
-	
 
 	
-	public void StartServer() {
-		
+	public void startServer(Server server) {
+		this.server = server;
+		if (this.server.StartServer()) {
+			this.server.start_receive();
+            new Thread(this.server::receive_loop).start();
+        }
 	}
 	
-	public void StartClient() {
-		
-	}
+	public void startClient(Client client) {
+		this.client = client;
+		if (this.client.ConnectToServer()){
+			this.client.start_receive();
+            new Thread(this.client::receive_loop).start();
+        }
+    }
+
 	
 	
 	public void GameCycle() {
@@ -315,7 +355,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	 		checked=true;
 	 	}
 	 	
-	    if((v1.PosX>300) && (v1.PosY>50) && (v1.PosY<350) && (v1.PosX<400) && checked) {
+	    if((v1.PosX>50) && (v1.PosY>50) && (v1.PosY<350) && (v1.PosX<150) && checked) {
 	    	t0 = System.currentTimeMillis();
 	 	    t1 = System.nanoTime();
 	 	    if(tellsec>2) {
