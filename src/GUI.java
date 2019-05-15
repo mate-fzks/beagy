@@ -429,7 +429,7 @@ public class GUI extends JPanel{
        	        		{
 	        	        		ipadress = ipaddmenujt.getText();
 	        	        		game = new GAMEPLAY(act_map[0],true,false);
-	        	        		Client c = new Client("127.0.0.1");
+	        	        		Client c = new Client(ipadress);
 		     	        		game.startClient(c);
 		     	        		game.gamewindow.setVisible(true);
 		     	        		Multi = true;
