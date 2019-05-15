@@ -122,8 +122,10 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 	    v1.CalcNewPos(tau, map, drive, steer);
 	    if (gameMode) {
-	    	if (Math.sqrt(Math.pow(v1.PosX-v2.PosX, 2)+Math.pow(v1.PosY-v2.PosY, 2)) < 20) {
-	    		 VehicleCollosion(0.5);
+	    	if (v2 != null) {
+	    		if (Math.sqrt(Math.pow(v1.PosX-v2.PosX, 2)+Math.pow(v1.PosY-v2.PosY, 2)) < 20) {
+	    		 	VehicleCollosion(0.5);
+	    		}
 	    	}
     		if(serverorclient) {
     			server.SendDatatoClient(v1);
@@ -134,8 +136,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
     			client.SendDatatoServer(v1);
     			v2 = client.getVehicle2();
     		}
-    		
-    	}
+	    }
 	    
 	}
 	
@@ -225,7 +226,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 		//pálya rajzolása
 		if (running) {
-			DrawMap(g2d,LeftCornerX-26,LeftCornerY-26,(int)CarHeight+54,(int)CarWidth+54);
+			DrawMap(g2d,LeftCornerX-10,LeftCornerY-10,(int)CarHeight+20,(int)CarWidth+20);
 		}
 		else {
 			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
@@ -244,7 +245,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			int LeftCornerX2 = (int)(v2.PosX-CarWidth2/2-v2.Vel*Math.cos(Ori2)*v2.dt);
 			int LeftCornerY2 = (int)(v2.PosY-CarHeight2/2-v2.Vel*Math.sin(Ori2)*v2.dt);
 
-			DrawMap(g2d,LeftCornerX2-26,LeftCornerY2-26,(int)CarHeight2+54,(int)CarWidth2+54);
+			DrawMap(g2d,LeftCornerX2-10,LeftCornerY2-10,(int)CarHeight2+20,(int)CarWidth2+20);
 			g2d.rotate(v2.Ori-Math.PI/2, CornerX2, CornerY2);
 		    g2d.drawImage(car2, CornerX2, CornerY2, this);
 		    g2d.setTransform(oldXForm);
