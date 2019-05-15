@@ -326,13 +326,6 @@ public class GUI extends JPanel{
 			    		planner_setup.setVisible(false);
 			    		menu.setVisible(true);
 				    	planning[0].gamewindow.setVisible(false);
-			    	/*
-				        game = new GAMEPLAY(act_map[0], false);
-				        
-				        game.gamewindow.setVisible(true);
-			    	     
-			    		single = true;
-			    	*/
 			    	}
 			    });
 			    
@@ -344,27 +337,7 @@ public class GUI extends JPanel{
 			    	
 			    	}
 			    });
-	    
-		        /*
-		     	MATERIAL snow = new MATERIAL("SNOW");
-		     	MATERIAL tarmac = new MATERIAL("TARMAC");
-
-		     	MATERIAL grass = new MATERIAL("GRASS");
-		     	MATERIAL gravel = new MATERIAL("GRAVEL");
-		     	MATERIAL MUD = new MATERIAL("MUD");
-		     	act_map2 = plan.CreateStraight(act_map2,45,100,5,snow,grass);
-		     	act_map2 = plan.CreateStraight(act_map2,20,200,5,tarmac,gravel);	
-		     	act_map2 = plan.CreateStraight(act_map2,70,200,5,MUD,snow);
-		     	act_map2 = plan.CreateStraight(act_map2,-10,200,5,tarmac,snow);	
-		     	act_map2 = plan.CreateCircle(act_map2,30,110,200, 5, snow);
-		     	act_map2 = plan.CreateStraight(act_map2,180,200,5,tarmac,snow);	
-		     	act_map2 = plan.LoopClosure(act_map2);
-		     	*/
-		     	
-		     	/*
-		  
-	    		*/
-	    		
+	       		
 	         }          
 	    });
 	    ButtonSingle.addActionListener(new ActionListener() {
