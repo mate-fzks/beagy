@@ -2,7 +2,7 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-
+import java.util.Arrays;
 
 
 
@@ -10,6 +10,7 @@ public class GUI extends JPanel{
 
 	private GAMEPLAY game;
 	private volatile boolean single;
+	private volatile boolean serverStart = false;
 	private volatile boolean textgot = false;
 	private volatile boolean Multi = false;
 	private JFrame menu, networkmenu, waitforclient;
@@ -28,20 +29,33 @@ public class GUI extends JPanel{
 			if (single) {
 				game.GameCycle();
 			}
-			if(Multi)
-			{
-				if(game.serverorclient)
-				{
+			if (serverStart) {
+				try {
 				
-						game.GameCycle();
-				}
-				else
-				{
-						game.GameCycle();
+				 	Server s =new Server();
+				 	game.startServer(s);
+				 	waitforclient.setVisible(false);
+				 	game.gamewindow.setVisible(true);
+				 	Multi = true;
+				 	serverStart = false;
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 			}
+				if(Multi)
+				{
+					game.GameCycle();
+					if(!game.run)
+					{
+						break;
+					}
+
+				}
 
 		}
+		showresult(game.win);
+
 	}
 	
 	
@@ -62,7 +76,7 @@ public class GUI extends JPanel{
 		
 		menu = new JFrame("Menu");
 	    menu.add(gui);
-		menu.setSize(400, 400);
+		menu.setSize(400, 200);
 		menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		menu.setResizable(false);
 		
@@ -226,7 +240,7 @@ public class GUI extends JPanel{
 			    buttons.add(SaveTrack);
 			    SaveTrack.setVisible(false);
 			    planner_setup.setVisible(true);
-			  //  CloseLoop.setVisible(false);
+			    CloseLoop.setVisible(false);
 			    
 			    
 			    //Pályatervezés start
@@ -236,14 +250,17 @@ public class GUI extends JPanel{
 		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false,true)};
 		        boolean closeable[]= {false};
 		        boolean firststep[]= {true};
+		        boolean straight[] = {true};
 		        int prevang[]= {0},prevdist[]= {0}, prevcircori[]= {0}, prevcircang[]= {0},prevcircrad[]= {0};
 		        
 			    CreateStraight.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 			    		MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
 			    		if(	isNum(straight_angle.getText()) && isNum(straight_dist.getText())) {
-				    		if(!firststep[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		if(!firststep[0] && straight[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		if(!firststep[0] && !straight[0])  act_map2[1] = plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
 				    		firststep[0]=false;
+				    		straight[0]=true;
 					        act_map2[0] = plan[0].CreateStraight(act_map2[0], Integer.parseInt(straight_angle.getText()), Integer.parseInt(straight_dist.getText()), 5, track_mat);	
 			    		}    
 				        prevang[0]=Integer.parseInt(straight_angle.getText());
@@ -255,22 +272,25 @@ public class GUI extends JPanel{
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
 
-				    //  if(!closeable[0]) CloseLoop.setVisible(false);
-				   //   else CloseLoop.setVisible(true);
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 		           	}
 			    });
 			    
 			    CreateCircle.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
-				        MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
+				        MATERIAL track_mat = new MATERIAL((String)track_circ.getSelectedItem());
 				      if(isNum(circ_orient.getText()) && isNum(circ_ang.getText()) && isNum(circ_rad.getText())) {
-					        if(!firststep[0] && prevcircori[0]!=0 && prevcircang[0]!=0 && prevcircrad[0]!=0) act_map2[1] =  plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
+					        if(!firststep[0] && prevcircang[0]!=0 && prevcircrad[0]!=0 && !straight[0]) act_map2[1] = plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
+					        if(!firststep[0] && prevcircang[0]==0 && prevcircrad[0]==0) act_map2[1] = plan1[0].CreateStraight(act_map2[1], 0, 0, 5, track_mat);
+					        if(!firststep[0] && straight[0])  act_map2[1] = plan1[0].CreateStraight(act_map2[1], prevang[0], prevdist[0], 5, track_mat);
+				    		straight[0]=false;
 					        firststep[0]=false;
 					        act_map2[0] = plan[0].CreateCircle(act_map2[0], Integer.parseInt(circ_orient.getText()), Integer.parseInt(circ_ang.getText()), Integer.parseInt(circ_rad.getText()), 5, track_mat);			      
 					    }
 				        prevcircori[0]=Integer.parseInt(circ_orient.getText());
 				        prevcircang[0]=Integer.parseInt(circ_ang.getText());
-				        prevcircrad[0]=Integer.parseInt(circ_ang.getText());
+				        prevcircrad[0]=Integer.parseInt(circ_rad.getText());
 				        
 				        planning[0].gamewindow.setVisible(false);
 				        planning[0] = new GAMEPLAY(act_map2[0],false,true);
@@ -278,8 +298,8 @@ public class GUI extends JPanel{
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
 
-				       // if(!closeable[0]) CloseLoop.setVisible(false);
-				       // else CloseLoop.setVisible(true);
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 		           	}
 			    });
 			    
@@ -288,6 +308,7 @@ public class GUI extends JPanel{
 				        planning[0].gamewindow.setVisible(false);
 				        planning[0] = new GAMEPLAY(plan[0].LoopClosure(act_map2[0]),false,true);
 				        planning[0].gamewindow.setVisible(true);
+				        
 				        SaveTrack.setVisible(true);
 
 		           	}
@@ -296,15 +317,19 @@ public class GUI extends JPanel{
 			    Redesign.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
 			    		plan[0]=new PLANNER(plan1[0]);
-
-			    		act_map2[0] = new MAP(act_map2[1]);
+			    		
+		        		act_map2[0] = new MAP(act_map2[1]);
 	
 				    	firststep[0]=true;
 				    	
 				    	planning[0].gamewindow.setVisible(false);
 				        planning[0] = new GAMEPLAY(act_map2[0],false,true);
 				        planning[0].gamewindow.setVisible(true);
+				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
+				        
+				        if(!closeable[0]) CloseLoop.setVisible(false);
+				        else CloseLoop.setVisible(true);
 
 			    	  	}
 			    });
@@ -315,13 +340,6 @@ public class GUI extends JPanel{
 			    		planner_setup.setVisible(false);
 			    		menu.setVisible(true);
 				    	planning[0].gamewindow.setVisible(false);
-			    	/*
-				        game = new GAMEPLAY(act_map[0], false);
-				        
-				        game.gamewindow.setVisible(true);
-			    	     
-			    		single = true;
-			    	*/
 			    	}
 			    });
 			    
@@ -333,27 +351,7 @@ public class GUI extends JPanel{
 			    	
 			    	}
 			    });
-	    
-		        /*
-		     	MATERIAL snow = new MATERIAL("SNOW");
-		     	MATERIAL tarmac = new MATERIAL("TARMAC");
-
-		     	MATERIAL grass = new MATERIAL("GRASS");
-		     	MATERIAL gravel = new MATERIAL("GRAVEL");
-		     	MATERIAL MUD = new MATERIAL("MUD");
-		     	act_map2 = plan.CreateStraight(act_map2,45,100,5,snow,grass);
-		     	act_map2 = plan.CreateStraight(act_map2,20,200,5,tarmac,gravel);	
-		     	act_map2 = plan.CreateStraight(act_map2,70,200,5,MUD,snow);
-		     	act_map2 = plan.CreateStraight(act_map2,-10,200,5,tarmac,snow);	
-		     	act_map2 = plan.CreateCircle(act_map2,30,110,200, 5, snow);
-		     	act_map2 = plan.CreateStraight(act_map2,180,200,5,tarmac,snow);	
-		     	act_map2 = plan.LoopClosure(act_map2);
-		     	*/
-		     	
-		     	/*
-		  
-	    		*/
-	    		
+	       		
 	         }          
 	    });
 	    ButtonSingle.addActionListener(new ActionListener() {
@@ -369,6 +367,7 @@ public class GUI extends JPanel{
 	        	JFrame ingame_menu;
 	        
 	    	    ingame_menu = new JFrame("Menu");
+	    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	        	ingame_menu.add(gui);
 	        	ingame_menu.setSize(1200, 100);
 	    		JPanel panel = new JPanel();
@@ -415,19 +414,7 @@ public class GUI extends JPanel{
 						networkmenu.setVisible(false);
 						game = new GAMEPLAY(act_map[0],true,true);
 						waitforclient.setVisible(true);
-						
-							try {
-								
-								 Server s =new Server();
-								 game.startServer(s);
-								 waitforclient.setVisible(false);
-								 game.gamewindow.setVisible(true);
-								 Multi = true;
-							} catch (Exception e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-					
+						serverStart = true;					
 	     	         }          
 	         	});
 	         	joinserver.addActionListener(new ActionListener() {
@@ -464,7 +451,31 @@ public class GUI extends JPanel{
 	     buttons.add(ButtonMulti);        
 	}
 	
- 
+	public void showresult(boolean win)
+	{
+		JFrame result = new JFrame();
+		JPanel resultjp = new JPanel();
+		JLabel resultjl = new JLabel();
+		result.setSize(400,200);
+		result.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		resultjl.setHorizontalAlignment(JLabel.CENTER);
+		resultjl.setVerticalAlignment(JLabel.CENTER);
+		if(win)
+		{
+			result.setTitle("You Win!");
+			resultjl.setText("You Win!");
+		}
+		else
+		{
+			result.setTitle("You Lost!");
+			resultjl.setText("You Lost!");
+		}
+		resultjp.add(resultjl);
+		result.add(resultjp);
+		result.setVisible(true);
+	}
+
 
 }
 

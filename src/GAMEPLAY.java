@@ -35,6 +35,9 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public boolean serverorclient;
 	public Server server;
 	public Client client;
+	public boolean win = false;
+	public boolean run = true;
+
 	
 	public GAMEPLAY(MAP map,boolean multi_player, boolean serverorclient) {
 		this.map = map;
@@ -56,7 +59,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		if(this.serverorclient)
 		{
 			v1 = new VEHICLE(100,400,3*Math.PI/2);
-			v2 = new VEHICLE(80,400,3*Math.PI/2);
+			v2 = new VEHICLE(60,400,3*Math.PI/2);
 			try {car = ImageIO.read(new File("kocsi.png"));
 			} catch (IOException e){}
 			try {car2 = ImageIO.read(new File("kocsi2.png"));
@@ -64,7 +67,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 		}
 		else
 		{
-			v1 = new VEHICLE(80,400,3*Math.PI/2);		
+			v1 = new VEHICLE(60,400,3*Math.PI/2);		
 			v2 = new VEHICLE(100,400,3*Math.PI/2);
 			try {car = ImageIO.read(new File("kocsi2.png"));
 			} catch (IOException e){}
@@ -119,6 +122,9 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 	    v1.CalcNewPos(tau, map, drive, steer);
 	    if (gameMode) {
+	    	if (Math.sqrt(Math.pow(v1.PosX-v2.PosX, 2)+Math.pow(v1.PosY-v2.PosY, 2)) < 20) {
+	    		 VehicleCollosion(0.5);
+	    	}
     		if(serverorclient) {
     			server.SendDatatoClient(v1);
     			v2 = server.getVehicle2();
@@ -130,6 +136,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
     		}
     		
     	}
+	    
 	}
 	
 	
@@ -193,10 +200,10 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 				g2d.drawString(time, 400, 30);
 				time = String.format("Lap: %02d", lap);
 				g2d.drawString(time, 800, 30);
-				time = String.format( "%02d" + ":" + "%02d", checkpoint[0], checkpoint[1]);
-				g2d.drawString(time, checkpoint[0], checkpoint[1]);
-				time = String.format( "%b" , checked);
-				g2d.drawString(time,1000,30);
+			//	time = String.format( "%02d" + ":" + "%02d", checkpoint[0], checkpoint[1]);
+			//	g2d.drawString(time, 1000, 30);
+			//	time = String.format( "%b" , checked);
+			//	g2d.drawString(time,1000,30);
 			}
 		}
 	}
@@ -218,7 +225,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 
 		//pálya rajzolása
 		if (running) {
-			DrawMap(g2d,LeftCornerX-26,LeftCornerY-26,(int)CarHeight+34,(int)CarWidth+34);
+			DrawMap(g2d,LeftCornerX-26,LeftCornerY-26,(int)CarHeight+54,(int)CarWidth+54);
 		}
 		else {
 			DrawMap(g2d,1,1,map.GetHeight(), map.GetWidth());
@@ -237,7 +244,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			int LeftCornerX2 = (int)(v2.PosX-CarWidth2/2-v2.Vel*Math.cos(Ori2)*v2.dt);
 			int LeftCornerY2 = (int)(v2.PosY-CarHeight2/2-v2.Vel*Math.sin(Ori2)*v2.dt);
 
-			DrawMap(g2d,LeftCornerX2-26,LeftCornerY2-26,(int)CarHeight2+34,(int)CarWidth2+34);
+			DrawMap(g2d,LeftCornerX2-26,LeftCornerY2-26,(int)CarHeight2+54,(int)CarWidth2+54);
 			g2d.rotate(v2.Ori-Math.PI/2, CornerX2, CornerY2);
 		    g2d.drawImage(car2, CornerX2, CornerY2, this);
 		    g2d.setTransform(oldXForm);
@@ -355,7 +362,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	 		checked=true;
 	 	}
 	 	
-	    if((v1.PosX>300) && (v1.PosY>50) && (v1.PosY<350) && (v1.PosX<400) && checked) {
+	    if((v1.PosX>50) && (v1.PosY>50) && (v1.PosY<350) && (v1.PosX<150) && checked) {
 	    	t0 = System.currentTimeMillis();
 	 	    t1 = System.nanoTime();
 	 	    if(tellsec>2) {
@@ -385,7 +392,47 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	    	tellsec=0;
 	    	checked=false;
 	    }
+	    if(gameMode && v2 != null)
+	    {
+	    	if(lap == 5)
+	    	{
+	    		if(!v2.winner)
+	    		{
+	    		run = false;
+	    		win = true;	    		
+	    		v1.winner = true;
+	    		if(serverorclient)
+	    		{
+	    			server.SendDatatoClient(v1);
+	    		}
+	    		else
+	    		{
+	    			client.SendDatatoServer(v1);
+	    		}
+	    		
+	    		break;
+	    		}
+	    	}
+	    	if(v2.winner)
+	    	{
+	    		run = false;
+	    		win = false;
+	    		break;
+	    	}
+	    	
 	    }
-	} 
+	    }
+	}
+	
+	public void VehicleCollosion(double k) {
+		double collang = Math.atan2(v2.PosY-v1.PosY, v2.PosX-v1.PosX);
+		double Vel10 = v1.Vel*Math.cos(collang - v1.Ori);
+		double Vel20 = v2.Vel*Math.cos(collang - v2.Ori);
+		double Vel11 = (Vel10+Vel20)/2+k*(Vel20-Vel10)/2;
+		v1.Vel = Math.sqrt(Math.pow(v1.Vel*Math.sin(collang - v1.Ori),2)+Math.pow(Vel11,2));
+		v1.Ori = collang-Math.atan2(v1.Vel*Math.sin(collang - v1.Ori),Vel11);
+		v1.PosX = v1.PosX+0.1*v1.Vel*Math.cos(v1.Ori);
+		v1.PosY = v1.PosY+0.1*v1.Vel*Math.sin(v1.Ori);
+	}
 	
 }

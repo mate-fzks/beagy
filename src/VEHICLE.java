@@ -8,6 +8,7 @@ public class VEHICLE implements Serializable{
 	public double dt;
 	public double PosX;
 	public double PosY;
+	public volatile boolean winner; 
 	
 	private static double MinRadius = 60; //maximum kanyarodási szögsebessége az autónak
 	
@@ -73,6 +74,7 @@ public class VEHICLE implements Serializable{
 		
 		//új sebesség számítása elsõfokú közelítéssel
 		double a = (DriveForce - Fric*Vel)/mass;
+		if (Vel < 0) a = 2*a; // tolatásnál nagyobb legyen a gyorsulás
 		double MinVel = 1;
 		
 		Vel = Vel + a*dt;
