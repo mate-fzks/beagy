@@ -91,6 +91,12 @@ public class PLANNER {
 	public MAP CreateCircle(MAP map,int ori, int ang, int track_radius,  int track_width, MATERIAL track_surface) {
 		//ang +-180
 		int xpos, ypos, xc, yc;
+		if(ang>180) ang=180;
+		if(ang<-180) ang=-180;
+		if(ori<0) {
+			ori=-ori;
+			ang=-ang;
+		}
 		for (int i=0; i<map.GetWidth(); i++) {
 			for (int j=0; j<map.GetHeight(); j++) {
 				if ((Math.sqrt((i-this.LasPosX)*(i-this.LasPosX)+(j-this.LasPosY)*(j-this.LasPosY)) > track_radius-track_width/2) 

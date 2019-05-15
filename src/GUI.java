@@ -62,7 +62,7 @@ public class GUI extends JPanel{
 		
 		menu = new JFrame("Menu");
 	    menu.add(gui);
-		menu.setSize(400, 400);
+		menu.setSize(400, 200);
 		menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		menu.setResizable(false);
 		
@@ -265,7 +265,7 @@ public class GUI extends JPanel{
 			    
 			    CreateCircle.addActionListener(new ActionListener() {
 			    	public void actionPerformed(ActionEvent e) {
-				        MATERIAL track_mat = new MATERIAL((String)track_straight.getSelectedItem());
+				        MATERIAL track_mat = new MATERIAL((String)track_circ.getSelectedItem());
 				      if(isNum(circ_orient.getText()) && isNum(circ_ang.getText()) && isNum(circ_rad.getText())) {
 					        if(!firststep[0] && prevcircang[0]!=0 && prevcircrad[0]!=0 && !straight[0]) act_map2[1] = plan1[0].CreateCircle(act_map2[1], prevcircori[0],prevcircang[0],prevcircrad[0], 5, track_mat);
 					        if(!firststep[0] && prevcircang[0]==0 && prevcircrad[0]==0) act_map2[1] = plan1[0].CreateStraight(act_map2[1], 0, 0, 5, track_mat);
@@ -353,6 +353,7 @@ public class GUI extends JPanel{
 	        	JFrame ingame_menu;
 	        
 	    	    ingame_menu = new JFrame("Menu");
+	    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	        	ingame_menu.add(gui);
 	        	ingame_menu.setSize(1200, 100);
 	    		JPanel panel = new JPanel();
