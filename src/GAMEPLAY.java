@@ -123,7 +123,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	    v1.CalcNewPos(tau, map, drive, steer);
 	    if (gameMode) {
 	    	if (v2 != null) {
-	    		if (Math.sqrt(Math.pow(v1.PosX-v2.PosX, 2)+Math.pow(v1.PosY-v2.PosY, 2)) < 20) {
+	    		if (Math.sqrt(Math.pow(v1.PosX-v2.PosX, 2)+Math.pow(v1.PosY-v2.PosY, 2)) < 25) {
 	    		 	VehicleCollosion(0.5);
 	    		}
 	    	}
@@ -171,13 +171,15 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			break;
 			
 		case 1: 
+			oldXForm1 = g2d.getTransform();
+			paintGAMEPLAY(g2d);
+			g2d.setTransform(oldXForm1);
+			g2d.setColor(new Color(0, 0, 0));
+			g2d.fillRect(gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 4*d-10, 2*d-10);
 			g2d.setColor(new Color(0, 255, 0));
 			g2d.fillOval((int)(gamewindow.getWidth()/2-0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
 			g2d.fillOval((int)(gamewindow.getWidth()/2-1.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
 			g2d.fillOval((int)(gamewindow.getWidth()/2+0.5*d+1),gamewindow.getHeight()/2-d/2+1,d-2,d-2);
-			oldXForm1 = g2d.getTransform();
-			paintGAMEPLAY(g2d);
-			g2d.setTransform(oldXForm1);
 			g2d.setColor(new Color(0, 0, 0));
 			String time = String.format("%02d" + ":" + "%02d" + ":" + "%02d", tellmin, tellsec, tellmil/10);
 			g2d.drawString(time, 10, 30);
@@ -188,7 +190,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 				AffineTransform oldXForm = g2d.getTransform();
 				
 				
-				if (tellsec > 2 && tellsec < 5) {
+				if (tellsec > 2 && tellsec < 4) {
 					DrawMap(g2d,gamewindow.getWidth()/2-2*d+5, gamewindow.getHeight()/2-d+5, 2*d, 4*d);
 				}
 				paintGAMEPLAY(g2d);
@@ -427,13 +429,25 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	
 	public void VehicleCollosion(double k) {
 		double collang = Math.atan2(v2.PosY-v1.PosY, v2.PosX-v1.PosX);
-		double Vel10 = v1.Vel*Math.cos(collang - v1.Ori);
-		double Vel20 = v2.Vel*Math.cos(collang - v2.Ori);
-		double Vel11 = (Vel10+Vel20)/2+k*(Vel20-Vel10)/2;
-		v1.Vel = Math.sqrt(Math.pow(v1.Vel*Math.sin(collang - v1.Ori),2)+Math.pow(Vel11,2));
-		v1.Ori = collang-Math.atan2(v1.Vel*Math.sin(collang - v1.Ori),Vel11);
-		v1.PosX = v1.PosX+0.1*v1.Vel*Math.cos(v1.Ori);
-		v1.PosY = v1.PosY+0.1*v1.Vel*Math.sin(v1.Ori);
+		
+		double Ori1 = v1.Ori % (Math.PI*2);
+		if (Ori1 > Math.PI) Ori1 = Math.PI-Ori1;
+		
+		double Ori2 = v2.Ori % (Math.PI*2);
+		if (Ori2 > Math.PI) Ori2 = Math.PI-Ori2;
+		
+		double Vel10 = v1.Vel*Math.cos(collang - Ori1);
+		double Vel20 = v2.Vel*Math.cos(collang - Ori2);
+		
+		if (Vel10-Vel20 > 0) {
+			double Vel11 = (Vel10+Vel20)/2+k*(Vel20-Vel10)/2;
+		
+			v1.Vel = Math.sqrt(Math.pow(v1.Vel*Math.sin(collang - Ori1),2)+Math.pow(Vel11,2));
+			v1.Ori = collang-Math.atan2(v1.Vel*Math.sin(collang - Ori1),Vel11);
+		
+			//v1.PosX = v1.PosX+0.1*v1.Vel*Math.cos(v1.Ori);
+			//v1.PosY = v1.PosY+0.1*v1.Vel*Math.sin(v1.Ori);
+		}
 	}
 	
 }
