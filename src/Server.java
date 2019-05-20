@@ -43,7 +43,7 @@ public class Server extends Thread {
     }
     public void SendDatatoClient(VEHICLE Vehicle) {
 
-      //  System.out.println("Vehicle to be written = " + Vehicle);
+        System.out.println("Vehicle to be written = " + Vehicle);
 
         try {
             outStream.reset();
@@ -51,13 +51,15 @@ public class Server extends Thread {
 
         } catch (IOException e) {
             e.printStackTrace();
+            this.stop_receive();
+            this.StopServer();
         }
     }
     public void receive() {
 
         try {
         	this.v2 = (VEHICLE) inStream.readObject();
-           // System.out.println("Object received");
+            System.out.println("Object received");
             
 //            System.out.println(arena_rx);
 //            System.out.println(arena_rx.getPlayer().getAlcoholLevel());

@@ -1,9 +1,6 @@
-import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
@@ -37,20 +34,23 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public Client client;
 	public boolean win = false;
 	public boolean run = true;
+	public boolean birmode;
 	public volatile boolean backtomenu;
 	public volatile boolean endnow;
+	public int birinvert = 1;
 
 	
-	public GAMEPLAY(MAP map,boolean multi_player, boolean serverorclient) {
+	public GAMEPLAY(MAP map,boolean multi_player, boolean serverorclient, boolean birmode) {
 		this.map = new MAP (map);
 		this.gameMode = multi_player;
 		this.serverorclient = serverorclient;
+		this.birmode = birmode;
 		playing = true;
 		ready = 0;
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		gamewindow = new JFrame("Gran Turismo Forza X");
-      //gamewindow.getContentPane().setLayout(null);
+	//gamewindow.getContentPane().setLayout(null);
 	    gamewindow.add(this);
 		gamewindow.setSize(1200, 700);
 		gamewindow.addWindowListener(this);
@@ -108,9 +108,9 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_LEFT)
-					steer = -1;
+					steer = -1*birinvert;
 				if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-					steer = 1;
+					steer = 1*birinvert;
 				if (e.getKeyCode() == KeyEvent.VK_UP)
 					drive = 1;
 				if (e.getKeyCode() == KeyEvent.VK_DOWN)
@@ -130,21 +130,30 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	    		}
 	    	}
     		if(serverorclient) {
-    			if(!server.serverSocket.isClosed())
+    			if(server != null)
     			{
     			server.SendDatatoClient(v1);
     			v2 = server.getVehicle2();
+    			}
+    			if(server.serverSocket.isClosed())
+    			{
+    				backtomenu = true;
     			}
     			}
     		
     		else
     		{
-    			if(!client.socket.isClosed())
+    			if(client != null)
     				{
     					client.SendDatatoServer(v1);
     					v2 = client.getVehicle2();
         			}
+    			if(client.socket.isClosed())
+    			{
+    				backtomenu = true;
+    			}
     		}
+    		
 	    }
 	    
 	}
@@ -328,6 +337,7 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	public void GameCycle() {
 		long t0, t1, t2;
 		double tau;
+		boolean inverted = false;
 		
 		this.repaint();
 		ready = 5;
@@ -367,6 +377,15 @@ public class GAMEPLAY extends JPanel implements WindowListener{
 	    refresh(tau);
 	 	repaint();
 	 	t1 = System.nanoTime();
+	 	
+	 	if(birmode) {
+	 		if (!inverted && tellsec % 4 == 1) {
+	 			birinvert = -birinvert;
+	 			inverted = true;
+	 		}
+	 		if (tellsec % 4 == 0) inverted = false;
+	 	}	
+	 	else birinvert = 1;
 	 	
 	 	if((v1.PosX>(checkpoint[0]-100)) && (v1.PosX<(checkpoint[0]+100)) && (v1.PosY>(checkpoint[1]-100)) && (v1.PosY<(checkpoint[1]+100))) {
 	 		checked=true;

@@ -10,13 +10,14 @@ public class GUI extends JPanel{
 
 	private GAMEPLAY game;
 	private volatile boolean single;
-	private volatile boolean serverStart = false;
+	private volatile boolean serverStart = false, clientstart = false;
 	private volatile boolean textgot = false;
 	private volatile boolean Multi = false;
-	private JFrame menu, networkmenu, waitforclient;
+	private volatile boolean newserver = true;
+	private volatile boolean birmodeon = false;
+	private JFrame menu, networkmenu, waitforclient, ingame_menu, ipaddmenu;
 	private String ipadress;
-	private Server server;
-	
+	JCheckBox birmode;
 
 	
 	public void GUIStart() {
@@ -34,8 +35,10 @@ public class GUI extends JPanel{
 			}
 			if (serverStart) {
 				try {
-					if(game != null)
-					{
+					game = null;
+					PLANNER plan[] = {new PLANNER()};
+					MAP act_map[] = {plan[0].DefaultMap()};
+					game = new GAMEPLAY(act_map[0],true,true,birmodeon);
 				 	Server s =new Server();
 				 	game.startServer(s);
 				 	waitforclient.setVisible(false);
@@ -43,7 +46,6 @@ public class GUI extends JPanel{
 				 	Multi = true;
 				 	serverStart = false;
 
-		        	JFrame ingame_menu;
 		        
 		    	    ingame_menu = new JFrame("Menu");
 		    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,21 +70,52 @@ public class GUI extends JPanel{
 				    		menu.setVisible(true);
 				    	    ingame_menu.setVisible(false);
 				    	    single = false;
-				    	    while(true)
-				    	    {
-				    	    	if(game.endnow)
-				    	    	{
-				    	    		game = null;
-				    	    		break;
-				    	    	}
-				    	    }
+				    	    Multi = false;  
 				    	}
 		    		});
-				}	
+					
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+			}
+			if (clientstart) {
+				game = null;
+				PLANNER plan[] = {new PLANNER()};
+				MAP act_map[] = {plan[0].DefaultMap()};
+        		game = new GAMEPLAY(act_map[0],true,false,birmodeon);
+        		Client c = new Client(ipadress);
+	        		game.startClient(c);
+	        		game.gamewindow.setVisible(true);
+	        		Multi = true;
+	        		clientstart = false;
+	        		ipaddmenu.setVisible(false);
+	        		ingame_menu = new JFrame("Menu");
+		    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		        	ingame_menu.setSize(1200, 100);
+		    		JPanel panel = new JPanel();
+		    		panel.setLayout(new FlowLayout());
+		    		ingame_menu.add(panel);
+		        	JButton Menu = new JButton("Menu");
+		        	Menu.setBounds(50, 20, 100, 20);
+		    		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		    		ingame_menu.setLocation(dim.width/2-ingame_menu.getSize().width/2, dim.height/2-ingame_menu.getSize().height/2-390);
+		    		panel.add(Menu);
+		    		ingame_menu.setVisible(true);
+		    	    
+		    		Menu.addActionListener(new ActionListener() {
+				    	public void actionPerformed(ActionEvent e) {
+				    		game.gamewindow.setVisible(false);
+				    		game.backtomenu = true;
+				    		game.client.stop_receive();
+				    		game.client.Disconnect();
+				    		menu.setVisible(true);
+				    	    ingame_menu.setVisible(false);
+				    	    single = false;
+				    	    Multi = false;
+				    	}
+		    		});
 			}
 				if(Multi)
 				{
@@ -93,6 +126,7 @@ public class GUI extends JPanel{
 					{
 					if(!game.run)
 					{
+						ingame_menu.setVisible(false);
 						break;
 					}
 					}
@@ -124,17 +158,22 @@ public class GUI extends JPanel{
 	    menu.add(gui);
 		menu.setSize(400, 200);
 		menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		menu.setResizable(false);
+		//menu.setResizable(false);
+		
+	
+		birmode = new JCheckBox("Bír mod");
+		
 		
 		JPanel buttons = new JPanel();
 		buttons.setLayout(new FlowLayout());
-		
+		//új menü a multiplayerhez
 		networkmenu = new JFrame("Menu");
 		networkmenu.add(gui);
 		networkmenu.setSize(400, 400);
 		networkmenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		networkmenu.setResizable(false);
 		
+		//a kliensre váráshoz
 		waitforclient = new JFrame();
 		waitforclient.add(gui);
 		JPanel waitforclientjp = new JPanel();
@@ -148,7 +187,8 @@ public class GUI extends JPanel{
 		waitforclientjp.add(waitforclientjl);
 		waitforclient.add(waitforclientjp);
 		
-		JFrame ipaddmenu = new JFrame();
+		//ip cim kéréshez 
+		ipaddmenu = new JFrame();
 		JPanel ipaddmenujp = new JPanel();
 		JTextField ipaddmenujt = new JTextField(30);
 		ipaddmenu.setTitle("Menu");
@@ -162,13 +202,21 @@ public class GUI extends JPanel{
 		
 		menu.add(buttons);
 		
+	
+		
 		JButton ButtonPlanner = new JButton("Track Planner");
 		JButton ButtonSingle = new JButton("Singleplayer");
 		JButton ButtonMulti = new JButton("Multiplayer");
+		buttons.add(birmode);
+		
+		event e = new event();
+		birmode.addItemListener(e);
+		
 		
 		PLANNER plan[] = {new PLANNER()};
 		MAP act_map[] = {plan[0].DefaultMap()};
-	    
+		
+		
 	    ButtonPlanner.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
 	        	 
@@ -296,7 +344,7 @@ public class GUI extends JPanel{
 			    PLANNER planb1[] = {new PLANNER()};
 		        MAP[] act_map2 = {plan[0].CreateMap(),plan1[0].CreateMap()};
 		        MAP[] backgound = {planb[0].CreateMap(), planb1[0].CreateMap()};
-		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false,true)};
+		        GAMEPLAY[] planning = {new GAMEPLAY(act_map2[0],false,true,birmodeon)};
 		        boolean closeable[]= {false};
 		        boolean firststep[]= {true};
 		        boolean straight[] = {true};
@@ -325,7 +373,7 @@ public class GUI extends JPanel{
 				        prevdist[0]=Integer.parseInt(straight_dist.getText());
 		
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true);
+				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true,birmodeon);
 				        planning[0].gamewindow.setVisible(true);
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
@@ -370,7 +418,7 @@ public class GUI extends JPanel{
 				        prevcircrad[0]=Integer.parseInt(circ_rad.getText());
 				        
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true);
+				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true,birmodeon);
 				        planning[0].gamewindow.setVisible(true);
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
@@ -404,7 +452,7 @@ public class GUI extends JPanel{
 				        }
 				        
 				        planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(trackmap,false,true);
+				        planning[0] = new GAMEPLAY(trackmap,false,true,birmodeon);
 				        planning[0].gamewindow.setVisible(true);
 				        act_map2[0]=trackmap;
 		           	}
@@ -421,7 +469,7 @@ public class GUI extends JPanel{
 				    	firststep[0]=true;
 				    	
 				    	planning[0].gamewindow.setVisible(false);
-				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true);
+				        planning[0] = new GAMEPLAY(plan[0].DisplayMap(act_map2[0], backgound[0]),false,true,birmodeon);
 				        planning[0].gamewindow.setVisible(true);
 				        closeable[0]=plan[0].LoopClosureCheck(act_map2[0]);
 				        SaveTrack.setVisible(false);
@@ -453,17 +501,17 @@ public class GUI extends JPanel{
 	       		
 	         }          
 	    });
+	    //single player mód kiválasztva
 	    ButtonSingle.addActionListener(new ActionListener() {
 	         public void actionPerformed(ActionEvent e) {
 	    		menu.setVisible(false);
 
-	    	    game = new GAMEPLAY(act_map[0],false,true);
+	    	    game = new GAMEPLAY(act_map[0],false,true,birmodeon);
 	    	    
 	    	    game.gamewindow.setVisible(true);
 	    	     
 	    		single = true;
 	    		
-	        	JFrame ingame_menu;
 	        
 	    	    ingame_menu = new JFrame("Menu");
 	    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -486,6 +534,7 @@ public class GUI extends JPanel{
 			    		menu.setVisible(true);
 			    	    ingame_menu.setVisible(false);
 			    	    single = false;
+			    	   
 			    	    while(true)
 			    	    {
 			    	    	if(game.endnow)
@@ -521,7 +570,6 @@ public class GUI extends JPanel{
 						menu.setVisible(false);
 			    	    single = false;
 						networkmenu.setVisible(false);
-						game = new GAMEPLAY(act_map[0],true,true);
 						waitforclient.setVisible(true);
 						serverStart = true;						
 						
@@ -531,53 +579,15 @@ public class GUI extends JPanel{
 	        	         public void actionPerformed(ActionEvent e) {     
 					    	single = false;	        	        	 
 	        	        	networkmenu.setVisible(false);
-	        	        	ipaddmenu.setVisible(true);
+	         	        	ipaddmenu.setVisible(true);
 	        	        	ipaddmenujb.addActionListener(new ActionListener()
 	        	        	{
 	        	        	
 	        	        	public void actionPerformed(ActionEvent d)
        	        		{
 	        	        		ipadress = ipaddmenujt.getText();
-	        	        		game = new GAMEPLAY(act_map[0],true,false);
-	        	        		Client c = new Client(ipadress);
-		     	        		game.startClient(c);
-		     	        		game.gamewindow.setVisible(true);
-		     	        		Multi = true;
-		     	        		ipaddmenu.setVisible(false);
-		     	        		JFrame ingame_menu;
-		     	        		ingame_menu = new JFrame("Menu");
-		     		    		ingame_menu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		     		        	ingame_menu.setSize(1200, 100);
-		     		    		JPanel panel = new JPanel();
-		     		    		panel.setLayout(new FlowLayout());
-		     		    		ingame_menu.add(panel);
-		     		        	JButton Menu = new JButton("Menu");
-		     		        	Menu.setBounds(50, 20, 100, 20);
-		     		    		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		     		    		ingame_menu.setLocation(dim.width/2-ingame_menu.getSize().width/2, dim.height/2-ingame_menu.getSize().height/2-390);
-		     		    		panel.add(Menu);
-		     		    		ingame_menu.setVisible(true);
-		     		    	    
-		     		    		Menu.addActionListener(new ActionListener() {
-		     				    	public void actionPerformed(ActionEvent e) {
-		     				    		game.gamewindow.setVisible(false);
-		     				    		game.backtomenu = true;
-		     				    		game.client.stop_receive();
-		     				    		game.client.Disconnect();
-		     				    		menu.setVisible(true);
-		     				    	    ingame_menu.setVisible(false);
-		     				    	    single = false;
-		     				    	   while(true)
-		     				    	    {
-		     				    	    	if(game.endnow)
-		     				    	    	{
-		     				    	    		game = null;
-		     				    	    		break;
-		     				    	    	}
-		     				    	    }
-		     				    	}
-		     		    		});
+	        	        		clientstart = true;
+	        	        		
        	        		}
 	        	        	});
 	        	        	
@@ -627,8 +637,19 @@ public class GUI extends JPanel{
 		result.setVisible(true);
 	}
 
-
+	public class event implements ItemListener {
+		public void itemStateChanged(ItemEvent e) {
+			if(birmode.isSelected())
+			{
+				birmodeon= true;
+			//	 System.out.println("birmode on");
+			}
+			else
+			{
+				birmodeon = false;
+		//		System.out.println("birmode off");
+			}
+		} 	
+	}
 }
-
-
 
